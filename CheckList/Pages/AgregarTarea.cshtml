@@ -1,0 +1,166 @@
+@page "{id:int?}"
+@model AgregarTareaModel
+@{
+    ViewData["Title"] = Model.PageTitle;
+}
+
+<div class="wrapper">
+    <div class="main" style="grid-template-columns: 1fr; max-width: 500px; margin: 0 auto;">
+        <div>
+            <div class="col-header">
+                @if (Model.IsEditing)
+                {
+                    <svg width="13" height="13" viewBox="0 0 13 13" fill="none"><path d="M2 10l1.5-1.5 6.5-6.5 1.5 1.5-6.5 6.5L2 10z" stroke="currentColor" stroke-width="1.1" stroke-linecap="round" stroke-linejoin="round" /><path d="M8.5 2.5l2 2" stroke="currentColor" stroke-width="1.1" stroke-linecap="round" /></svg>
+                    <span>Modificar Tarea</span>
+                }
+                else
+                {
+                    <svg width="13" height="13" viewBox="0 0 13 13" fill="none"><path d="M6.5 2v9M2 6.5h9" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" /></svg>
+                    <span>Agregar Nueva Tarea</span>
+                }
+            </div>
+            <div class="card">
+                <form method="post">
+                    <div class="form-group" style="margin-bottom: 1rem;">
+                        <label class="form-label" for="nombre">Nombre de la tarea *</label>
+                        <input class="form-control" id="nombre" asp-for="Nombre" placeholder="Ingresa el nombre de la tarea" required />
+                        <span class="text-danger" asp-validation-for="Nombre"></span>
+                    </div>
+
+                    <div class="form-group" style="margin-bottom: 1rem;">
+                        <label class="form-label" for="tipo">Tipo de tarea *</label>
+                        <select class="form-control" id="tipo" asp-for="Tipo" onchange="toggleFechaHora()">
+                            <option value="daily">Tarea Diaria (todos los días)</option>
+                            <option value="specific">Tarea Específica (con fecha)</option>
+                        </select>
+                    </div>
+
+                    <div id="fecha-wrap" style="display: none; margin-bottom: 1rem;">
+                        <label class="form-label" for="fecha">Fecha *</label>
+                        <input class="form-control" id="fecha" asp-for="Fecha" type="date" />
+                        <span class="text-danger" asp-validation-for="Fecha"></span>
+                    </div>
+
+                    <div id="hora-wrap" style="display: none; margin-bottom: 1rem;">
+                        <label class="form-label" for="hora">Hora (opcional)</label>
+                        <input class="form-control" id="hora" asp-for="Hora" type="time" />
+                    </div>
+
+                    <div class="form-group" style="margin-bottom: 1rem;">
+                        <label class="form-label" for="persona">Persona (opcional)</label>
+                        <select class="form-control" id="persona" asp-for="Persona">
+                            <option value="">Sin asignar</option>
+                            <option value="Bubu">?? Bubu</option>
+                            <option value="Dudu">?? Dudu</option>
+                        </select>
+                    </div>
+
+                    <div style="display: flex; gap: 0.5rem; justify-content: flex-end;">
+                        <a asp-page="/Index" class="btn btn-cancel">Cancelar</a>
+                        <button type="submit" class="btn btn-primary">
+                            @if (Model.IsEditing)
+                            {
+                                <span>Guardar Cambios</span>
+                            }
+                            else
+                            {
+                                <span>Agregar Tarea</span>
+                            }
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    function toggleFechaHora() {
+        const tipo = document.getElementById('tipo').value;
+        const fechaWrap = document.getElementById('fecha-wrap');
+        const horaWrap = document.getElementById('hora-wrap');
+        
+        if (tipo === 'specific') {
+            fechaWrap.style.display = 'block';
+            horaWrap.style.display = 'block';
+        } else {
+            fechaWrap.style.display = 'none';
+            horaWrap.style.display = 'none';
+        }
+    }
+    
+    // Mostrar/ocultar en carga inicial
+    document.addEventListener('DOMContentLoaded', function() {
+        toggleFechaHora();
+    });
+</script>
+
+<style>
+    .form-group {
+        display: flex;
+        flex-direction: column;
+    }
+
+    .form-label {
+        font-size: 12px;
+        color: var(--color-text-secondary);
+        margin-bottom: 6px;
+        font-weight: 500;
+    }
+
+    .form-control {
+        padding: 8px 12px;
+        border: 0.5px solid var(--color-border-secondary);
+        border-radius: var(--border-radius-md);
+        font-size: 14px;
+        font-family: var(--font-sans);
+        background: var(--color-background-primary);
+        color: var(--color-text-primary);
+    }
+
+    .form-control:focus {
+        outline: none;
+        border-color: #1a3a5c;
+        box-shadow: 0 0 0 3px rgba(26, 58, 92, 0.1);
+    }
+
+    .btn {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        padding: 9px 16px;
+        border: none;
+        border-radius: var(--border-radius-md);
+        cursor: pointer;
+        font-family: var(--font-sans);
+        font-size: 14px;
+        text-decoration: none;
+        transition: background 0.15s;
+        min-height: 40px;
+    }
+
+    .btn-primary {
+        background: #1a3a5c;
+        color: #fff;
+    }
+
+    .btn-primary:hover {
+        background: #142e4a;
+    }
+
+    .btn-cancel {
+        background: transparent;
+        color: var(--color-text-secondary);
+        border: 0.5px solid var(--color-border-secondary);
+    }
+
+    .btn-cancel:hover {
+        background: var(--color-background-secondary);
+    }
+
+    .text-danger {
+        color: #dc3545;
+        font-size: 12px;
+        margin-top: 4px;
+    }
+</style>

@@ -4,273 +4,10 @@
     ViewData["Title"] = "Bubu y Dudu Tareas";
 }
 
-<style>
-    * { box-sizing: border-box; margin: 0; padding: 0; }
-
-    .navbar {
-      background: #1a3a5c;
-      padding: 0 1rem;
-      display: flex;
-      align-items: center;
-      gap: 0;
-      height: 52px;
-      border-radius: var(--border-radius-lg) var(--border-radius-lg) 0 0;
-      flex-wrap: wrap;
-    }
-    .nav-brand {
-      display: flex;
-      align-items: center;
-      gap: 8px;
-      margin-right: auto;
-      color: #fff;
-      font-size: 15px;
-      font-weight: 500;
-    }
-    .nav-btn {
-      display: flex;
-      align-items: center;
-      gap: 5px;
-      background: rgba(255,255,255,0.08);
-      border: 0.5px solid rgba(255,255,255,0.18);
-      color: #e8eef5;
-      font-size: 13px;
-      padding: 6px 12px;
-      border-radius: var(--border-radius-md);
-      cursor: pointer;
-      height: 34px;
-      margin-left: 6px;
-      font-family: var(--font-sans);
-      transition: background 0.15s;
-      white-space: nowrap;
-    }
-    .nav-btn:hover { background: rgba(255,255,255,0.16); }
-    .nav-btn:active { background: rgba(255,255,255,0.22); }
-
-    .main {
-      background: var(--color-background-secondary);
-      border-radius: 0 0 var(--border-radius-lg) var(--border-radius-lg);
-      padding: 1rem;
-      display: grid;
-      grid-template-columns: 1fr 1fr 1fr;
-      gap: 1rem;
-    }
-
-    @@media (max-width: 640px) {
-      .main {
-        grid-template-columns: 1fr;
-        gap: 0.75rem;
-        padding: 0.75rem;
-      }
-      .navbar { height: auto; padding: 10px; gap: 6px; }
-      .nav-brand { width: 100%; margin-bottom: 4px; }
-      .nav-btn { flex: 1; justify-content: center; font-size: 12px; margin-left: 0; }
-      .col-header { font-size: 12px; }
-      .card { min-height: unset; }
-      .task-item { padding: 11px 0; min-height: 44px; }
-      .task-label { font-size: 15px; }
-      .tomorrow-item { padding: 11px 0; min-height: 44px; }
-    }
-
-    .col-header {
-      font-size: 12px;
-      font-weight: 500;
-      color: var(--color-text-secondary);
-      text-transform: uppercase;
-      letter-spacing: 0.07em;
-      margin-bottom: 8px;
-      display: flex;
-      align-items: center;
-      gap: 6px;
-    }
-    .badge {
-      background: var(--color-background-primary);
-      border: 0.5px solid var(--color-border-secondary);
-      color: var(--color-text-tertiary);
-      font-size: 11px;
-      font-weight: 500;
-      padding: 1px 7px;
-      border-radius: 99px;
-    }
-    .col-date {
-      font-size: 11px;
-      color: var(--color-text-tertiary);
-      font-weight: 400;
-      text-transform: none;
-      letter-spacing: 0;
-      margin-left: auto;
-    }
-
-    .card {
-      background: var(--color-background-primary);
-      border: 0.5px solid var(--color-border-tertiary);
-      border-radius: var(--border-radius-lg);
-      padding: 0.75rem 1rem;
-      min-height: 300px;
-    }
-
-    .progress-bar-wrap {
-      height: 3px;
-      background: var(--color-border-tertiary);
-      border-radius: 2px;
-      margin-bottom: 8px;
-      overflow: hidden;
-    }
-    .progress-bar {
-      height: 100%;
-      background: #1a3a5c;
-      border-radius: 2px;
-      transition: width 0.3s ease;
-    }
-
-    .task-item {
-      display: flex;
-      align-items: flex-start;
-      gap: 12px;
-      padding: 9px 0;
-      border-bottom: 0.5px solid var(--color-border-tertiary);
-      cursor: pointer;
-      -webkit-tap-highlight-color: transparent;
-      user-select: none;
-    }
-    .task-item:last-child { border-bottom: none; }
-    .task-item:active .checkbox { transform: scale(0.9); }
-
-    .checkbox {
-      width: 20px;
-      height: 20px;
-      border: 1.5px solid var(--color-border-secondary);
-      border-radius: 5px;
-      flex-shrink: 0;
-      margin-top: 1px;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      background: var(--color-background-primary);
-      transition: background 0.15s, border-color 0.15s, transform 0.1s;
-    }
-    .checkbox.checked {
-      background: #1a3a5c;
-      border-color: #1a3a5c;
-    }
-    .checkbox.checked svg { display: block; }
-    .checkbox svg { display: none; }
-
-    .task-info { flex: 1; min-width: 0; }
-    .task-label {
-      font-size: 14px;
-      color: var(--color-text-primary);
-      line-height: 1.4;
-    }
-    .task-label.done {
-      color: var(--color-text-tertiary);
-      text-decoration: line-through;
-    }
-    .task-time {
-      font-size: 11px;
-      color: var(--color-text-tertiary);
-      margin-top: 2px;
-      display: flex;
-      align-items: center;
-      gap: 3px;
-    }
-
-    .tomorrow-item {
-      display: flex;
-      align-items: flex-start;
-      gap: 10px;
-      padding: 9px 0;
-      border-bottom: 0.5px solid var(--color-border-tertiary);
-    }
-    .tomorrow-item:last-child { border-bottom: none; }
-    .tomorrow-dot {
-      width: 6px;
-      height: 6px;
-      border-radius: 50%;
-      background: var(--color-border-secondary);
-      flex-shrink: 0;
-      margin-top: 6px;
-    }
-
-    .empty-state {
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      justify-content: center;
-      height: 140px;
-      gap: 8px;
-      color: var(--color-text-tertiary);
-      font-size: 13px;
-    }
-
-    .modal-backdrop {
-      position: absolute;
-      inset: 0;
-      background: rgba(0,0,0,0.38);
-      border-radius: var(--border-radius-lg);
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      z-index: 10;
-      padding: 1rem;
-    }
-    .modal {
-      background: var(--color-background-primary);
-      border: 0.5px solid var(--color-border-secondary);
-      border-radius: var(--border-radius-lg);
-      padding: 1.25rem;
-      width: 100%;
-      max-width: 300px;
-    }
-    .modal h3 { font-size: 15px; font-weight: 500; color: var(--color-text-primary); margin-bottom: 1rem; }
-    .modal label { font-size: 12px; color: var(--color-text-secondary); display: block; margin-bottom: 4px; margin-top: 10px; }
-    .modal input, .modal select { width: 100%; font-size: 14px; }
-    .modal-actions { display: flex; gap: 8px; margin-top: 1rem; justify-content: flex-end; }
-    .btn-primary {
-      background: #1a3a5c; color: #fff; border: none;
-      font-size: 14px; padding: 9px 16px;
-      border-radius: var(--border-radius-md); cursor: pointer;
-      font-family: var(--font-sans); min-height: 40px;
-    }
-    .btn-primary:active { background: #142e4a; }
-    .btn-cancel {
-      background: transparent; color: var(--color-text-secondary);
-      border: 0.5px solid var(--color-border-secondary);
-      font-size: 14px; padding: 9px 14px;
-      border-radius: var(--border-radius-md); cursor: pointer;
-      font-family: var(--font-sans); min-height: 40px;
-    }
-    .btn-cancel:active { background: var(--color-background-secondary); }
-    .btn-danger {
-      background: transparent; color: var(--color-text-danger);
-      border: 0.5px solid var(--color-border-danger);
-      font-size: 14px; padding: 9px 14px;
-      border-radius: var(--border-radius-md); cursor: pointer;
-      font-family: var(--font-sans); min-height: 40px;
-    }
-
-    .wrapper { position: relative; border-radius: var(--border-radius-lg); overflow: hidden; }
-</style>
+<link rel="stylesheet" href="~/css/checklist.css" asp-append-version="true" />
 
 <div class="wrapper" id="app">
-    <div class="navbar">
-        <div class="nav-brand">
-            <svg width="18" height="18" viewBox="0 0 18 18" fill="none"><rect x="1" y="1" width="16" height="16" rx="3" stroke="white" stroke-width="1.5" /><path d="M5 9l3 3 5-5" stroke="white" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" /></svg>
-            Mis Tareas
-        </div>
-        <button class="nav-btn" onclick="openModal('imagen')">
-            <svg width="13" height="13" viewBox="0 0 13 13" fill="none"><rect x="0.5" y="0.5" width="12" height="12" rx="2" stroke="currentColor" stroke-width="1.1" /><circle cx="4.5" cy="4.5" r="1" fill="currentColor" /><path d="M0.5 9l3-3 2.5 2.5L8.5 6l4 3.5" stroke="currentColor" stroke-width="1.1" stroke-linecap="round" stroke-linejoin="round" /></svg>
-            Menú
-        </button>
-        <button class="nav-btn" onclick="openModal('agregar')">
-            <svg width="13" height="13" viewBox="0 0 13 13" fill="none"><path d="M6.5 2v9M2 6.5h9" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" /></svg>
-            Agregar
-        </button>
-        <button class="nav-btn" onclick="openModal('modificar')">
-            <svg width="13" height="13" viewBox="0 0 13 13" fill="none"><path d="M2 10l1.5-1.5 6.5-6.5 1.5 1.5-6.5 6.5L2 10z" stroke="currentColor" stroke-width="1.1" stroke-linecap="round" stroke-linejoin="round" /><path d="M8.5 2.5l2 2" stroke="currentColor" stroke-width="1.1" stroke-linecap="round" /></svg>
-            Modificar
-        </button>
-    </div>
-
+    
     <div class="main" id="main">
         <div>
             <div class="col-header">
@@ -302,8 +39,6 @@
             <div class="card" id="tomorrow-list"></div>
         </div>
     </div>
-
-    <div id="modal-container"></div>
 </div>
 
 <script>
@@ -312,24 +47,23 @@
     const tomorrow = new Date(now); tomorrow.setDate(tomorrow.getDate()+1);
     const days = ['Dom','Lun','Mar','Mié','Jue','Vie','Sáb'];
     const fmtShort = d => `${days[d.getDay()]} ${pad(d.getDate())}/${pad(d.getMonth()+1)}`;
-    const fmtFull = d => `${pad(d.getDate())}/${pad(d.getMonth()+1)}/${d.getFullYear()}`;
 
     document.getElementById('today-date').textContent = fmtShort(now);
     document.getElementById('tomorrow-date').textContent = fmtShort(tomorrow);
 
     let state = {
       daily: [
-        { id:1, label:'Regar plantas', done:true },
-        { id:2, label:'Sacar basura', done:false },
-        { id:3, label:'Revisar correos', done:false },
+        { id:1, label:'Regar plantas', done:true, persona:'Bubu' },
+        { id:2, label:'Sacar basura', done:false, persona:'' },
+        { id:3, label:'Revisar correos', done:false, persona:'Dudu' },
       ],
       today: [
-        { id:4, label:'Pagar impuesto', time:'10:00', done:true },
-        { id:5, label:'Bañar al perro', time:'16:30', done:false },
+        { id:4, label:'Pagar impuesto', time:'10:00', done:true, persona:'Bubu' },
+        { id:5, label:'Bañar al perro', time:'16:30', done:false, persona:'' },
       ],
       tomorrow: [
-        { id:6, label:'Llamar a Rigorberto', time:'', done:false },
-        { id:7, label:'Pagar tarjeta', time:'12:00', done:false },
+        { id:6, label:'Llamar a Rigorberto', time:'', done:false, persona:'' },
+        { id:7, label:'Pagar tarjeta', time:'12:00', done:false, persona:'Dudu' },
       ],
       nextId: 8
     };
@@ -349,7 +83,10 @@
           <div class="checkbox${t.done?' checked':''}">${t.done?checkSVG():''}</div>
           <div class="task-info">
             <div class="task-label${t.done?' done':''}">${t.label}</div>
-            ${t.time?`<div class="task-time"><svg width="10" height="10" viewBox="0 0 10 10" fill="none"><circle cx="5" cy="5" r="4" stroke="currentColor" stroke-width="1"/><path d="M5 3v2l1.5 1.5" stroke="currentColor" stroke-width="1" stroke-linecap="round"/></svg>${t.time}</div>`:''}
+            <div class="task-meta">
+              ${t.time?`<span class="task-time"><svg width="10" height="10" viewBox="0 0 10 10" fill="none"><circle cx="5" cy="5" r="4" stroke="currentColor" stroke-width="1"/><path d="M5 3v2l1.5 1.5" stroke="currentColor" stroke-width="1" stroke-linecap="round"/></svg>${t.time}</span>`:''}
+              ${t.persona?`<span class="task-persona"><svg width="10" height="10" viewBox="0 0 10 10" fill="none"><circle cx="3" cy="2.5" r="1.5" stroke="currentColor" stroke-width="0.8"/><path d="M0.5 9.5c0-1.3 1.3-2.5 2.5-2.5s2.5 1.2 2.5 2.5" stroke="currentColor" stroke-width="0.8" stroke-linecap="round"/></svg>${t.persona}</span>`:''}
+            </div>
           </div>
         </div>`).join('');
     }
@@ -363,7 +100,10 @@
           <div class="tomorrow-dot"></div>
           <div class="task-info">
             <div class="task-label">${t.label}</div>
-            ${t.time?`<div class="task-time"><svg width="10" height="10" viewBox="0 0 10 10" fill="none"><circle cx="5" cy="5" r="4" stroke="currentColor" stroke-width="1"/><path d="M5 3v2l1.5 1.5" stroke="currentColor" stroke-width="1" stroke-linecap="round"/></svg>${t.time}</div>`:''}
+            <div class="task-meta">
+              ${t.time?`<span class="task-time"><svg width="10" height="10" viewBox="0 0 10 10" fill="none"><circle cx="5" cy="5" r="4" stroke="currentColor" stroke-width="1"/><path d="M5 3v2l1.5 1.5" stroke="currentColor" stroke-width="1" stroke-linecap="round"/></svg>${t.time}</span>`:''}
+              ${t.persona?`<span class="task-persona"><svg width="10" height="10" viewBox="0 0 10 10" fill="none"><circle cx="3" cy="2.5" r="1.5" stroke="currentColor" stroke-width="0.8"/><path d="M0.5 9.5c0-1.3 1.3-2.5 2.5-2.5s2.5 1.2 2.5 2.5" stroke="currentColor" stroke-width="0.8" stroke-linecap="round"/></svg>${t.persona}</span>`:''}
+            </div>
           </div>
         </div>`).join('');
     }
@@ -385,94 +125,22 @@
       render();
     }
 
-    function closeModal() { document.getElementById('modal-container').innerHTML = ''; }
-
-    function openModal(type) {
-      const mc = document.getElementById('modal-container');
-      if (type === 'imagen') {
-        mc.innerHTML = `<div class="modal-backdrop" onclick="closeModal()"><div class="modal" onclick="event.stopPropagation()">
-          <h3>Imagen del menú</h3>
-          <div style="border:0.5px dashed var(--color-border-secondary);border-radius:var(--border-radius-md);height:110px;display:flex;align-items:center;justify-content:center;color:var(--color-text-tertiary);font-size:13px;margin-bottom:1rem;">Zona de imagen</div>
-          <div class="modal-actions"><button class="btn-cancel" onclick="closeModal()">Cerrar</button><button class="btn-primary">Cargar</button></div>
-        </div></div>`;
-        return;
-      }
-      if (type === 'agregar') {
-        mc.innerHTML = `<div class="modal-backdrop" onclick="closeModal()"><div class="modal" onclick="event.stopPropagation()">
-          <h3>Agregar tarea</h3>
-          <label>Nombre</label>
-          <input type="text" id="new-label" placeholder="Nombre de la tarea" />
-          <label>Tipo</label>
-          <select id="new-type">
-            <option value="daily">Tarea diaria</option>
-            <option value="today">Específica — hoy (${fmtFull(now)})</option>
-            <option value="tomorrow">Específica — mañana (${fmtFull(tomorrow)})</option>
-          </select>
-          <div id="time-wrap" style="display:none"><label>Hora (opcional)</label><input type="time" id="new-time" /></div>
-          <div class="modal-actions">
-            <button class="btn-cancel" onclick="closeModal()">Cancelar</button>
-            <button class="btn-primary" onclick="addTask()">Agregar</button>
-          </div>
-        </div></div>`;
-        document.getElementById('new-type').addEventListener('change', function(){
-          document.getElementById('time-wrap').style.display = this.value==='daily'?'none':'block';
-        });
-        return;
-      }
-      if (type === 'modificar') {
-        const all = [
-          ...state.daily.map(t=>({...t,_col:'daily'})),
-          ...state.today.map(t=>({...t,_col:'today'})),
-          ...state.tomorrow.map(t=>({...t,_col:'tomorrow'}))
-        ];
-        mc.innerHTML = `<div class="modal-backdrop" onclick="closeModal()"><div class="modal" onclick="event.stopPropagation()">
-          <h3>Modificar tarea</h3>
-          <label>Tarea</label>
-          <select id="mod-id">${all.map(t=>`<option value="${t.id}|${t._col}">[${t._col==='daily'?'Diaria':t._col==='today'?'Hoy':'Mañana'}] ${t.label}</option>`).join('')}</select>
-          <label>Nuevo nombre</label>
-          <input type="text" id="mod-label" placeholder="Dejar vacío para no cambiar" />
-          <label>Nueva hora</label>
-          <input type="time" id="mod-time" />
-          <div class="modal-actions" style="justify-content:space-between">
-            <button class="btn-danger" onclick="deleteTask()">Eliminar</button>
-            <div style="display:flex;gap:8px">
-              <button class="btn-cancel" onclick="closeModal()">Cancelar</button>
-              <button class="btn-primary" onclick="modifyTask()">Guardar</button>
-            </div>
-          </div>
-        </div></div>`;
-      }
-    }
-
-    function addTask() {
-      const label = document.getElementById('new-label').value.trim();
-      if (!label) return;
-      const type = document.getElementById('new-type').value;
-      const timeEl = document.getElementById('new-time');
-      const time = (timeEl && timeEl.style.display !== 'none') ? timeEl.value : '';
-      state[type].push({ id: state.nextId++, label, done: false, time: time||'' });
-      render(); closeModal();
-    }
-
-    function getModTarget() {
-      const val = document.getElementById('mod-id').value.split('|');
-      return { id: parseInt(val[0]), col: val[1] };
-    }
-    function modifyTask() {
-      const {id,col} = getModTarget();
-      const t = state[col].find(t=>t.id===id);
-      if (!t) return;
-      const lbl = document.getElementById('mod-label').value.trim();
-      const tim = document.getElementById('mod-time').value;
-      if (lbl) t.label = lbl;
-      if (tim) t.time = tim;
-      render(); closeModal();
-    }
-    function deleteTask() {
-      const {id,col} = getModTarget();
-      state[col] = state[col].filter(t=>t.id!==id);
-      render(); closeModal();
-    }
-
     render();
 </script>
+
+<style>
+    .task-meta {
+        font-size: 11px;
+        color: var(--color-text-tertiary);
+        margin-top: 4px;
+        display: flex;
+        align-items: center;
+        gap: 8px;
+    }
+
+    .task-meta span {
+        display: flex;
+        align-items: center;
+        gap: 3px;
+    }
+</style>
