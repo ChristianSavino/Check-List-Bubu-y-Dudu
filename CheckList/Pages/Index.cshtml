@@ -13,26 +13,26 @@
             <div class="col-header">
                 <svg width="13" height="13" viewBox="0 0 13 13" fill="none"><circle cx="6.5" cy="6.5" r="5.5" stroke="currentColor" stroke-width="1.1" /><path d="M6.5 4v2.5l1.5 1.5" stroke="currentColor" stroke-width="1.1" stroke-linecap="round" /></svg>
                 Diarias
-                <span class="badge" id="daily-badge">0</span>
+                <span class="badge" id="daily-badge">@Model.Daily.Count</span>
             </div>
-            <div class="progress-bar-wrap"><div class="progress-bar" id="daily-progress" style="width:0%"></div></div>
+            <div class="progress-bar-wrap"><div class="progress-bar" id="daily-progress" style="width:@(Model.Daily.Count > 0 ? Math.Round((double)Model.Daily.Count(t => t.Done) / Model.Daily.Count * 100) : 0)%"></div></div>
             <div class="card" id="daily-list"></div>
         </div>
         <div>
             <div class="col-header">
                 <svg width="13" height="13" viewBox="0 0 13 13" fill="none"><rect x="0.5" y="1.5" width="12" height="10" rx="1.5" stroke="currentColor" stroke-width="1.1" /><path d="M4 0.5v2M9 0.5v2M0.5 5.5h12" stroke="currentColor" stroke-width="1.1" stroke-linecap="round" /></svg>
                 Hoy
-                <span class="badge" id="today-badge">0</span>
+                <span class="badge" id="today-badge">@Model.Today.Count</span>
                 <span class="col-date" id="today-date"></span>
             </div>
-            <div class="progress-bar-wrap"><div class="progress-bar" id="today-progress" style="width:0%"></div></div>
+            <div class="progress-bar-wrap"><div class="progress-bar" id="today-progress" style="width:@(Model.Today.Count > 0 ? Math.Round((double)Model.Today.Count(t => t.Done) / Model.Today.Count * 100) : 0)%"></div></div>
             <div class="card" id="today-list"></div>
         </div>
         <div>
             <div class="col-header">
                 <svg width="13" height="13" viewBox="0 0 13 13" fill="none"><rect x="0.5" y="1.5" width="12" height="10" rx="1.5" stroke="currentColor" stroke-width="1.1" /><path d="M4 0.5v2M9 0.5v2M0.5 5.5h12" stroke="currentColor" stroke-width="1.1" stroke-linecap="round" /></svg>
                 Mañana
-                <span class="badge" id="tomorrow-badge">0</span>
+                <span class="badge" id="tomorrow-badge">@Model.Tomorrow.Count</span>
                 <span class="col-date" id="tomorrow-date"></span>
             </div>
             <div class="progress-bar-wrap" style="visibility:hidden"><div class="progress-bar" style="width:0%"></div></div>
@@ -51,22 +51,18 @@
     document.getElementById('today-date').textContent = fmtShort(now);
     document.getElementById('tomorrow-date').textContent = fmtShort(tomorrow);
 
+    // Cargar datos desde el servidor
+    const dailyData = @Html.Raw(System.Text.Json.JsonSerializer.Serialize(Model.Daily));
+    const todayData = @Html.Raw(System.Text.Json.JsonSerializer.Serialize(Model.Today));
+    const tomorrowData = @Html.Raw(System.Text.Json.JsonSerializer.Serialize(Model.Tomorrow));
+
     let state = {
-      daily: [
-        { id:1, label:'Regar plantas', done:true, persona:'Bubu' },
-        { id:2, label:'Sacar basura', done:false, persona:'' },
-        { id:3, label:'Revisar correos', done:false, persona:'Dudu' },
-      ],
-      today: [
-        { id:4, label:'Pagar impuesto', time:'10:00', done:true, persona:'Bubu' },
-        { id:5, label:'Bañar al perro', time:'16:30', done:false, persona:'' },
-      ],
-      tomorrow: [
-        { id:6, label:'Llamar a Rigorberto', time:'', done:false, persona:'' },
-        { id:7, label:'Pagar tarjeta', time:'12:00', done:false, persona:'Dudu' },
-      ],
-      nextId: 8
+      daily: dailyData || [],
+      today: todayData || [],
+      tomorrow: tomorrowData || []
     };
+
+    console.log('State loaded:', state);
 
     function checkSVG() {
       return `<svg width="11" height="11" viewBox="0 0 11 11" fill="none"><path d="M2 5.5l2.5 2.5L9 3" stroke="white" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>`;
@@ -79,13 +75,13 @@
       document.getElementById(progressId).style.width = tasks.length ? Math.round(done/tasks.length*100)+'%' : '0%';
       if (!tasks.length) { el.innerHTML = emptyState(); return; }
       el.innerHTML = tasks.map(t => `
-        <div class="task-item" onclick="toggle('${listId}',${t.id})">
-          <div class="checkbox${t.done?' checked':''}">${t.done?checkSVG():''}</div>
+        <div class="task-item" onclick="toggle(${t.Id})">
+          <div class="checkbox${t.Done?' checked':''}">${t.Done?checkSVG():''}</div>
           <div class="task-info">
-            <div class="task-label${t.done?' done':''}">${t.label}</div>
+            <div class="task-label${t.Done?' done':''}">${escapeHtml(t.Label || '')}</div>
             <div class="task-meta">
-              ${t.time?`<span class="task-time"><svg width="10" height="10" viewBox="0 0 10 10" fill="none"><circle cx="5" cy="5" r="4" stroke="currentColor" stroke-width="1"/><path d="M5 3v2l1.5 1.5" stroke="currentColor" stroke-width="1" stroke-linecap="round"/></svg>${t.time}</span>`:''}
-              ${t.persona?`<span class="task-persona"><svg width="10" height="10" viewBox="0 0 10 10" fill="none"><circle cx="3" cy="2.5" r="1.5" stroke="currentColor" stroke-width="0.8"/><path d="M0.5 9.5c0-1.3 1.3-2.5 2.5-2.5s2.5 1.2 2.5 2.5" stroke="currentColor" stroke-width="0.8" stroke-linecap="round"/></svg>${t.persona}</span>`:''}
+              ${t.Time?`<span class="task-time"><svg width="10" height="10" viewBox="0 0 10 10" fill="none"><circle cx="5" cy="5" r="4" stroke="currentColor" stroke-width="1"/><path d="M5 3v2l1.5 1.5" stroke="currentColor" stroke-width="1" stroke-linecap="round"/></svg>${escapeHtml(t.Time)}</span>`:''}
+              ${t.Persona?`<span class="task-persona"><svg width="10" height="10" viewBox="0 0 10 10" fill="none"><circle cx="3" cy="2.5" r="1.5" stroke="currentColor" stroke-width="0.8"/><path d="M0.5 9.5c0-1.3 1.3-2.5 2.5-2.5s2.5 1.2 2.5 2.5" stroke="currentColor" stroke-width="0.8" stroke-linecap="round"/></svg>${escapeHtml(t.Persona)}</span>`:''}
             </div>
           </div>
         </div>`).join('');
@@ -99,13 +95,19 @@
         <div class="tomorrow-item">
           <div class="tomorrow-dot"></div>
           <div class="task-info">
-            <div class="task-label">${t.label}</div>
+            <div class="task-label">${escapeHtml(t.Label || '')}</div>
             <div class="task-meta">
-              ${t.time?`<span class="task-time"><svg width="10" height="10" viewBox="0 0 10 10" fill="none"><circle cx="5" cy="5" r="4" stroke="currentColor" stroke-width="1"/><path d="M5 3v2l1.5 1.5" stroke="currentColor" stroke-width="1" stroke-linecap="round"/></svg>${t.time}</span>`:''}
-              ${t.persona?`<span class="task-persona"><svg width="10" height="10" viewBox="0 0 10 10" fill="none"><circle cx="3" cy="2.5" r="1.5" stroke="currentColor" stroke-width="0.8"/><path d="M0.5 9.5c0-1.3 1.3-2.5 2.5-2.5s2.5 1.2 2.5 2.5" stroke="currentColor" stroke-width="0.8" stroke-linecap="round"/></svg>${t.persona}</span>`:''}
+              ${t.Time?`<span class="task-time"><svg width="10" height="10" viewBox="0 0 10 10" fill="none"><circle cx="5" cy="5" r="4" stroke="currentColor" stroke-width="1"/><path d="M5 3v2l1.5 1.5" stroke="currentColor" stroke-width="1" stroke-linecap="round"/></svg>${escapeHtml(t.Time)}</span>`:''}
+              ${t.Persona?`<span class="task-persona"><svg width="10" height="10" viewBox="0 0 10 10" fill="none"><circle cx="3" cy="2.5" r="1.5" stroke="currentColor" stroke-width="0.8"/><path d="M0.5 9.5c0-1.3 1.3-2.5 2.5-2.5s2.5 1.2 2.5 2.5" stroke="currentColor" stroke-width="0.8" stroke-linecap="round"/></svg>${escapeHtml(t.Persona)}</span>`:''}
             </div>
           </div>
         </div>`).join('');
+    }
+
+    function escapeHtml(text) {
+      const div = document.createElement('div');
+      div.textContent = text || '';
+      return div.innerHTML;
     }
 
     function emptyState() {
@@ -118,11 +120,44 @@
       renderTomorrowList(state.tomorrow);
     }
 
-    function toggle(listId, id) {
-      const key = listId === 'daily-list' ? 'daily' : 'today';
-      const t = state[key].find(t=>t.id===id);
-      if (t) t.done = !t.done;
-      render();
+    async function toggle(id) {
+      try {
+        console.log('Toggling task ID:', id);
+
+        const response = await fetch(`/api/tareas/toggle/${id}`, {
+          method: 'POST'
+        });
+
+        console.log('Response status:', response.status);
+
+        if (response.ok) {
+          // Buscar en todos los arrays y toggle
+          let found = false;
+          for (let key of ['daily', 'today', 'tomorrow']) {
+            const task = state[key].find(t => t.Id === id);
+            if (task) {
+              console.log('Task found in', key, 'before:', task.Done);
+              task.Done = !task.Done;
+              console.log('Task after:', task.Done);
+              found = true;
+              break;
+            }
+          }
+
+          if (found) {
+            console.log('Re-rendering UI');
+            render();
+          } else {
+            console.warn('Task not found in any list:', id);
+          }
+        } else {
+          console.error('Server returned error:', response.status);
+          const text = await response.text();
+          console.error('Response body:', text);
+        }
+      } catch (error) {
+        console.error('Error al actualizar tarea:', error);
+      }
     }
 
     render();

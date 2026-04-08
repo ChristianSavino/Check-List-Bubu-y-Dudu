@@ -1,0 +1,94 @@
+using CheckList.Core.Tarea.Domain;
+using Microsoft.EntityFrameworkCore;
+
+namespace CheckList.Core.Tarea.DataAccess
+{
+    public interface ITareaRepository
+    {
+        Task<List<TareaEntity>> GetTareasAsync();
+        Task<List<TareaEntity>> GetTareasDiariaAsync();
+        Task<List<TareaEntity>> GetTareasHoyAsync(DateTime fecha);
+        Task<List<TareaEntity>> GetTareasMañanaAsync(DateTime fecha);
+        Task<TareaEntity> GetTareaByIdAsync(int id);
+        Task AddTareaAsync(TareaEntity tarea);
+        Task UpdateTareaAsync(TareaEntity tarea);
+        Task DeleteTareaAsync(int id);
+        Task<List<TareaEntity>> GetTareasAtrasadasAsync(DateTime hoy);
+    }
+
+    public class TareaRepository : ITareaRepository
+    {
+        private readonly CheckListDbContext _context;
+
+        public TareaRepository(CheckListDbContext context)
+        {
+            _context = context;
+        }
+
+        public async Task<List<TareaEntity>> GetTareasAsync()
+        {
+            return await _context.Tareas.ToListAsync();
+        }
+
+        public async Task<List<TareaEntity>> GetTareasDiariaAsync()
+        {
+            return await _context.Tareas
+                .Where(t => t.Tipo == "daily")
+                .ToListAsync();
+        }
+
+        public async Task<List<TareaEntity>> GetTareasHoyAsync(DateTime fecha)
+        {
+            var fechaHoy = fecha.Date;
+            return await _context.Tareas
+                .Where(t => t.Tipo == "specific" && t.Fecha.HasValue && t.Fecha.Value.Date == fechaHoy)
+                .ToListAsync();
+        }
+
+        public async Task<List<TareaEntity>> GetTareasMañanaAsync(DateTime fecha)
+        {
+            var fechaMañana = fecha.AddDays(1).Date;
+            return await _context.Tareas
+                .Where(t => t.Tipo == "specific" && t.Fecha.HasValue && t.Fecha.Value.Date == fechaMañana)
+                .ToListAsync();
+        }
+
+        public async Task<List<TareaEntity>> GetTareasAtrasadasAsync(DateTime hoy)
+        {
+            var fechaHoy = hoy.Date;
+            return await _context.Tareas
+                .Where(t => t.Tipo == "specific" && t.Fecha.HasValue && t.Fecha.Value.Date < fechaHoy && !t.Completada)
+                .ToListAsync();
+        }
+
+        public async Task<TareaEntity> GetTareaByIdAsync(int id)
+        {
+            return await _context.Tareas.FindAsync(id);
+        }
+
+        public async Task AddTareaAsync(TareaEntity tarea)
+        {
+            tarea.FechaCreacion = DateTime.Now;
+            tarea.FechaActualizacion = DateTime.Now;
+            _context.Tareas.Add(tarea);
+            await _context.SaveChangesAsync();
+        }
+
+        public async Task UpdateTareaAsync(TareaEntity tarea)
+        {
+            tarea.FechaActualizacion = DateTime.Now;
+            _context.Tareas.Update(tarea);
+            await _context.SaveChangesAsync();
+        }
+
+        public async Task DeleteTareaAsync(int id)
+        {
+            var tarea = await _context.Tareas.FindAsync(id);
+            if (tarea != null)
+            {
+                _context.Tareas.Remove(tarea);
+                await _context.SaveChangesAsync();
+            }
+        }
+    }
+}

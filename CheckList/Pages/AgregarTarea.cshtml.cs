@@ -1,11 +1,16 @@
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.RazorPages;
+using CheckList.Core.Tarea.Logic;
+using CheckList.Core.Tarea.Domain;
 using System;
 
 namespace CheckList.Pages
 {
     public class AgregarTareaModel : PageModel
     {
+        private readonly ITareaService _tareaService;
+        private readonly ILogger<AgregarTareaModel> _logger;
+
         [BindProperty]
         public string Nombre { get; set; }
 
@@ -25,48 +30,109 @@ namespace CheckList.Pages
         public bool IsEditing { get; set; }
         public string PageTitle { get; set; } = "Agregar Tarea";
 
-        public void OnGet(int? id)
+        public AgregarTareaModel(ITareaService tareaService, ILogger<AgregarTareaModel> logger)
         {
-            TareaId = id;
-            IsEditing = id.HasValue;
-            
-            if (IsEditing)
+            _tareaService = tareaService;
+            _logger = logger;
+        }
+
+        public async Task OnGetAsync(int? id)
+        {
+            try
             {
-                PageTitle = "Modificar Tarea";
-                // Aquí se cargaría la tarea de la BD
-                // Por ahora datos de ejemplo
-                Nombre = "Ejemplo de tarea";
-                Tipo = "specific";
-                Fecha = DateTime.Now.AddDays(1).ToString("yyyy-MM-dd");
-                Hora = "14:30";
-                Persona = "Bubu";
+                TareaId = id;
+                IsEditing = id.HasValue;
+
+                if (IsEditing)
+                {
+                    PageTitle = "Modificar Tarea";
+                    var tarea = await _tareaService.GetTareaByIdAsync(id.Value);
+                    if (tarea != null)
+                    {
+                        Nombre = tarea.Nombre;
+                        Tipo = tarea.Tipo;
+                        Fecha = tarea.Fecha?.ToString("yyyy-MM-dd") ?? "";
+                        Hora = tarea.Hora ?? "";
+                        Persona = tarea.Persona ?? "";
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error al cargar tarea");
             }
         }
 
-        public IActionResult OnPost(int? id)
+        public async Task<IActionResult> OnPostAsync(int? id)
         {
-            if (!ModelState.IsValid || string.IsNullOrWhiteSpace(Nombre))
+            try
             {
+                // Asegurar que Persona siempre tiene un valor válido
+                if (Persona == null)
+                {
+                    Persona = "";
+                }
+
+                // CRÍTICO: Limpiar hora/fecha para tareas diarias
+                if (Tipo == "daily")
+                {
+                    Hora = "";
+                    Fecha = "";
+                    ModelState.Remove("Hora");
+                    ModelState.Remove("Fecha");
+                }
+
+                // VALIDACIÓN MANUAL - No depender de ModelState
+                if (string.IsNullOrWhiteSpace(Nombre))
+                {
+                    ModelState.AddModelError("Nombre", "El nombre de la tarea es obligatorio");
+                    return Page();
+                }
+
+                // Validar que tarea específica tiene fecha
+                if (Tipo == "specific" && string.IsNullOrWhiteSpace(Fecha))
+                {
+                    ModelState.AddModelError("Fecha", "La fecha es obligatoria para tareas específicas");
+                    return Page();
+                }
+
+                if (id.HasValue)
+                {
+                    // Actualizar
+                    var tarea = await _tareaService.GetTareaByIdAsync(id.Value);
+                    if (tarea != null)
+                    {
+                        tarea.Nombre = Nombre;
+                        tarea.Tipo = Tipo;
+                        tarea.Fecha = !string.IsNullOrWhiteSpace(Fecha) ? DateTime.Parse(Fecha) : null;
+                        tarea.Hora = Hora ?? "";
+                        tarea.Persona = Persona ?? "";
+                        await _tareaService.ActualizarTareaAsync(tarea);
+                    }
+                }
+                else
+                {
+                    // Crear nueva
+                    var tarea = new TareaEntity
+                    {
+                        Nombre = Nombre,
+                        Tipo = Tipo,
+                        Fecha = !string.IsNullOrWhiteSpace(Fecha) ? DateTime.Parse(Fecha) : null,
+                        Hora = Hora ?? "",
+                        Persona = Persona ?? "",
+                        Completada = false
+                    };
+                    await _tareaService.CrearTareaAsync(tarea);
+                }
+
+                return RedirectToPage("/Index");
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error al guardar tarea");
+                ModelState.AddModelError("", "Error al guardar la tarea");
                 return Page();
             }
-
-            // Validar que tarea específica tiene fecha
-            if (Tipo == "specific" && string.IsNullOrWhiteSpace(Fecha))
-            {
-                ModelState.AddModelError("Fecha", "La fecha es obligatoria para tareas específicas");
-                return Page();
-            }
-
-            if (id.HasValue)
-            {
-                // Actualizar tarea en BD
-            }
-            else
-            {
-                // Crear nueva tarea en BD
-            }
-
-            return RedirectToPage("/Index");
         }
     }
 }

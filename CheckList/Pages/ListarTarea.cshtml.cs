@@ -1,96 +1,61 @@
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.RazorPages;
+using CheckList.Core.Tarea.Logic;
+using CheckList.Core.Tarea.Domain;
 
 namespace CheckList.Pages
 {
     public class ListarTareaModel : PageModel
     {
-        public List<TareaDTO> Tareas { get; set; } = new();
+        private readonly ITareaService _tareaService;
+        private readonly ILogger<ListarTareaModel> _logger;
 
-        public void OnGet()
+        public List<TareaListDto> Tareas { get; set; } = new();
+
+        public ListarTareaModel(ITareaService tareaService, ILogger<ListarTareaModel> logger)
         {
-            CargarTareas();
+            _tareaService = tareaService;
+            _logger = logger;
         }
 
-        public IActionResult OnPostDelete(int id)
+        public async Task OnGetAsync()
         {
-            // Aquí se eliminaría la tarea de la BD
-            CargarTareas();
-            return RedirectToPage();
-        }
-
-        private void CargarTareas()
-        {
-            Tareas = new List<TareaDTO>
+            try
             {
-                new() { 
-                    Id = 1, 
-                    Nombre = "Regar plantas", 
-                    Tipo = "daily", 
-                    TipoLabel = "Diaria",
-                    Fecha = null,
-                    Hora = "",
-                    Persona = "Bubu"
-                },
-                new() { 
-                    Id = 2, 
-                    Nombre = "Sacar basura", 
-                    Tipo = "daily", 
-                    TipoLabel = "Diaria",
-                    Fecha = null,
-                    Hora = "",
-                    Persona = ""
-                },
-                new() { 
-                    Id = 3, 
-                    Nombre = "Revisar correos", 
-                    Tipo = "daily", 
-                    TipoLabel = "Diaria",
-                    Fecha = null,
-                    Hora = "",
-                    Persona = "Dudu"
-                },
-                new() { 
-                    Id = 4, 
-                    Nombre = "Pagar impuesto", 
-                    Tipo = "specific", 
-                    TipoLabel = "Específica",
-                    Fecha = DateTime.Now.ToString("yyyy-MM-dd"),
-                    Hora = "10:00",
-                    Persona = "Bubu"
-                },
-                new() { 
-                    Id = 5, 
-                    Nombre = "Bañar al perro", 
-                    Tipo = "specific", 
-                    TipoLabel = "Específica",
-                    Fecha = DateTime.Now.ToString("yyyy-MM-dd"),
-                    Hora = "16:30",
-                    Persona = ""
-                },
-                new() { 
-                    Id = 6, 
-                    Nombre = "Llamar a Rigorberto", 
-                    Tipo = "specific", 
-                    TipoLabel = "Específica",
-                    Fecha = DateTime.Now.AddDays(1).ToString("yyyy-MM-dd"),
-                    Hora = "",
-                    Persona = ""
-                },
-                new() { 
-                    Id = 7, 
-                    Nombre = "Pagar tarjeta", 
-                    Tipo = "specific", 
-                    TipoLabel = "Específica",
-                    Fecha = DateTime.Now.AddDays(1).ToString("yyyy-MM-dd"),
-                    Hora = "12:00",
-                    Persona = "Dudu"
-                }
-            };
+                var tareas = await _tareaService.GetTodasLasTareasAsync();
+                Tareas = tareas.Select(t => new TareaListDto
+                {
+                    Id = t.Id,
+                    Nombre = t.Nombre,
+                    Tipo = t.Tipo,
+                    TipoLabel = t.Tipo == "daily" ? "Diaria" : "Específica",
+                    Fecha = t.Fecha?.ToString("yyyy-MM-dd"),
+                    Hora = t.Hora ?? "",
+                    Persona = t.Persona ?? ""
+                }).ToList();
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error al cargar tareas");
+            }
+        }
+
+        public async Task<IActionResult> OnPostDeleteAsync(int id)
+        {
+            try
+            {
+                await _tareaService.EliminarTareaAsync(id);
+                return RedirectToPage();
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error al eliminar tarea");
+                return RedirectToPage();
+            }
         }
     }
 
-    public class TareaDTO
+    public class TareaListDto
     {
         public int Id { get; set; }
         public string Nombre { get; set; }

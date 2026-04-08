@@ -194,14 +194,14 @@
 .checkbox {
     width: 20px;
     height: 20px;
-    border: 1.5px solid var(--color-border-secondary);
+    border: 2px solid #1a3a5c;
     border-radius: 5px;
     flex-shrink: 0;
     margin-top: 1px;
     display: flex;
     align-items: center;
     justify-content: center;
-    background: var(--color-background-primary);
+    background: transparent;
     transition: background 0.15s, border-color 0.15s, transform 0.1s;
 }
 
@@ -256,12 +256,13 @@
 }
 
 .tomorrow-dot {
-    width: 6px;
-    height: 6px;
+    width: 8px;
+    height: 8px;
     border-radius: 50%;
-    background: var(--color-border-secondary);
+    background: #1a3a5c;
     flex-shrink: 0;
     margin-top: 6px;
+    box-shadow: 0 0 0 1px var(--color-background-secondary);
 }
 
 .empty-state {
