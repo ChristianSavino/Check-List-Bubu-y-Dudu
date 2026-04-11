@@ -1,8 +1,7 @@
+using CheckList.Core.Tarea.Domain;
+using CheckList.Core.Tarea.Logic;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.RazorPages;
-using CheckList.Core.Tarea.Logic;
-using CheckList.Core.Tarea.Domain;
-using System;
 
 namespace CheckList.Pages
 {

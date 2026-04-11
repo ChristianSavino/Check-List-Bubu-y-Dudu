@@ -14,6 +14,7 @@ namespace CheckList.Core.Tarea.DataAccess
         Task UpdateTareaAsync(TareaEntity tarea);
         Task DeleteTareaAsync(int id);
         Task<List<TareaEntity>> GetTareasAtrasadasAsync(DateTime hoy);
+        Task<List<TareaEntity>> GetTareasEspecificasCompletadasAntesDeAsync(DateTime fecha);
     }
 
     public class TareaRepository : ITareaRepository
@@ -89,6 +90,14 @@ namespace CheckList.Core.Tarea.DataAccess
                 _context.Tareas.Remove(tarea);
                 await _context.SaveChangesAsync();
             }
+        }
+
+        public async Task<List<TareaEntity>> GetTareasEspecificasCompletadasAntesDeAsync(DateTime fecha)
+        {
+            var fechaHoy = fecha.Date;
+            return await _context.Tareas
+                .Where(t => t.Tipo == "specific" && t.Completada && t.Fecha.HasValue && t.Fecha.Value.Date < fechaHoy)
+                .ToListAsync();
         }
     }
 }

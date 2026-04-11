@@ -1,5 +1,4 @@
 using CheckList.Core.Tarea.DataAccess;
-using CheckList.Core.Tarea.Domain;
 
 namespace CheckList.Core.Tarea.Logic
 {
@@ -55,7 +54,15 @@ namespace CheckList.Core.Tarea.Logic
                 await _tareaRepository.UpdateTareaAsync(tarea);
             }
 
-            // 3. Guardar fecha de última limpieza
+
+            // 3. Borrar tareas específicas completadas de días anteriores
+            var tareasCompletadasViejas = await _tareaRepository.GetTareasEspecificasCompletadasAntesDeAsync(hoy);
+            foreach (var tarea in tareasCompletadasViejas)
+            {
+                await _tareaRepository.DeleteTareaAsync(tarea.Id);
+            }
+
+            // 4. Guardar fecha de última limpieza
             await _settingRepository.SaveSettingAsync("LastCleanupDate", hoy.ToString("yyyy-MM-dd"));
         }
     }

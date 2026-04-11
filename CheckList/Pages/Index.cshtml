@@ -62,8 +62,6 @@
       tomorrow: tomorrowData || []
     };
 
-    console.log('State loaded:', state);
-
     function checkSVG() {
       return `<svg width="11" height="11" viewBox="0 0 11 11" fill="none"><path d="M2 5.5l2.5 2.5L9 3" stroke="white" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>`;
     }
@@ -122,13 +120,10 @@
 
     async function toggle(id) {
       try {
-        console.log('Toggling task ID:', id);
 
         const response = await fetch(`/api/tareas/toggle/${id}`, {
           method: 'POST'
         });
-
-        console.log('Response status:', response.status);
 
         if (response.ok) {
           // Buscar en todos los arrays y toggle
@@ -136,16 +131,13 @@
           for (let key of ['daily', 'today', 'tomorrow']) {
             const task = state[key].find(t => t.Id === id);
             if (task) {
-              console.log('Task found in', key, 'before:', task.Done);
               task.Done = !task.Done;
-              console.log('Task after:', task.Done);
               found = true;
               break;
             }
           }
 
           if (found) {
-            console.log('Re-rendering UI');
             render();
           } else {
             console.warn('Task not found in any list:', id);

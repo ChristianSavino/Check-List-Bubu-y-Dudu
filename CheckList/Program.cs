@@ -1,6 +1,5 @@
 using CheckList.Core.Tarea.DataAccess;
 using CheckList.Core.Tarea.Logic;
-using CheckList.Core.Tarea.DataAccess;
 using Microsoft.EntityFrameworkCore;
 
 var builder = WebApplication.CreateBuilder(args);
