@@ -1,4 +1,6 @@
+using CheckList.Core.Tarea.Domain;
 using CheckList.Core.Tarea.Logic;
+using CheckList.Core.Utils;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.RazorPages;
 
@@ -26,8 +28,8 @@ namespace CheckList.Pages
                 {
                     Id = t.Id,
                     Nombre = t.Nombre,
-                    Tipo = t.Tipo,
-                    TipoLabel = t.Tipo == "daily" ? "Diaria" : "Específica",
+                    Tipo = t.Tipo.ToString(),
+                    TipoLabel = Utils.TransformarTipoTarea(t.Tipo),
                     Fecha = t.Fecha?.ToString("yyyy-MM-dd"),
                     Hora = t.Hora ?? "",
                     Persona = t.Persona ?? ""

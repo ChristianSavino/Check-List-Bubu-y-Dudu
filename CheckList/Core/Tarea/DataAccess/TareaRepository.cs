@@ -9,11 +9,14 @@ namespace CheckList.Core.Tarea.DataAccess
         Task<List<TareaEntity>> GetTareasDiariaAsync();
         Task<List<TareaEntity>> GetTareasHoyAsync(DateTime fecha);
         Task<List<TareaEntity>> GetTareasMañanaAsync(DateTime fecha);
-        Task<TareaEntity> GetTareaByIdAsync(int id);
+        Task<List<TareaEntity>> GetTareasSemanalesHoyAsync(DateTime fecha);
+        Task<List<TareaEntity>> GetTareasSemanalesMañanaAsync(DateTime fecha);
+        Task<TareaEntity?> GetTareaByIdAsync(int id);
         Task AddTareaAsync(TareaEntity tarea);
         Task UpdateTareaAsync(TareaEntity tarea);
         Task DeleteTareaAsync(int id);
         Task<List<TareaEntity>> GetTareasAtrasadasAsync(DateTime hoy);
+        Task<List<TareaEntity>> GetTareasSemanalesAtrasadasAsync(DateTime hoy);
         Task<List<TareaEntity>> GetTareasEspecificasCompletadasAntesDeAsync(DateTime fecha);
     }
 
@@ -34,7 +37,7 @@ namespace CheckList.Core.Tarea.DataAccess
         public async Task<List<TareaEntity>> GetTareasDiariaAsync()
         {
             return await _context.Tareas
-                .Where(t => t.Tipo == "daily")
+                .Where(t => t.Tipo == TipoTarea.Daily)
                 .ToListAsync();
         }
 
@@ -42,7 +45,9 @@ namespace CheckList.Core.Tarea.DataAccess
         {
             var fechaHoy = fecha.Date;
             return await _context.Tareas
-                .Where(t => t.Tipo == "specific" && t.Fecha.HasValue && t.Fecha.Value.Date == fechaHoy)
+                .Where(t => t.Tipo == TipoTarea.Specific
+                         && t.Fecha.HasValue
+                         && t.Fecha.Value.Date == fechaHoy)
                 .ToListAsync();
         }
 
@@ -50,7 +55,35 @@ namespace CheckList.Core.Tarea.DataAccess
         {
             var fechaMañana = fecha.AddDays(1).Date;
             return await _context.Tareas
-                .Where(t => t.Tipo == "specific" && t.Fecha.HasValue && t.Fecha.Value.Date == fechaMañana)
+                .Where(t => t.Tipo == TipoTarea.Specific
+                         && t.Fecha.HasValue
+                         && t.Fecha.Value.Date == fechaMañana)
+                .ToListAsync();
+        }
+
+        // Tareas weekly cuyo DiaSemana coincide con hoy,
+        // O que están atrasadas (Fecha < hoy y no completadas)
+        public async Task<List<TareaEntity>> GetTareasSemanalesHoyAsync(DateTime fecha)
+        {
+            var fechaHoy = fecha.Date;
+            var diaHoy = fecha.DayOfWeek;
+            return await _context.Tareas
+                .Where(t => t.Tipo == TipoTarea.Weekly
+                         && t.DiaSemana.HasValue
+                         && (t.DiaSemana.Value == diaHoy
+                             || (t.Fecha.HasValue && t.Fecha.Value.Date < fechaHoy && !t.Completada)))
+                .ToListAsync();
+        }
+
+        // Tareas weekly cuyo DiaSemana coincide con mañana (solo las no atrasadas)
+        public async Task<List<TareaEntity>> GetTareasSemanalesMañanaAsync(DateTime fecha)
+        {
+            var fechaMañana = fecha.AddDays(1).Date;
+            var diaMañana = fechaMañana.DayOfWeek;
+            return await _context.Tareas
+                .Where(t => t.Tipo == TipoTarea.Weekly
+                         && t.DiaSemana.HasValue
+                         && t.DiaSemana.Value == diaMañana)
                 .ToListAsync();
         }
 
@@ -58,11 +91,27 @@ namespace CheckList.Core.Tarea.DataAccess
         {
             var fechaHoy = hoy.Date;
             return await _context.Tareas
-                .Where(t => t.Tipo == "specific" && t.Fecha.HasValue && t.Fecha.Value.Date < fechaHoy && !t.Completada)
+                .Where(t => t.Tipo == TipoTarea.Specific
+                         && t.Fecha.HasValue
+                         && t.Fecha.Value.Date < fechaHoy
+                         && !t.Completada)
                 .ToListAsync();
         }
 
-        public async Task<TareaEntity> GetTareaByIdAsync(int id)
+        // Weekly no completadas cuya última fecha asignada fue antes de hoy
+        // (ya manejadas en GetTareasSemanalesHoyAsync, pero necesarias para el cleanup)
+        public async Task<List<TareaEntity>> GetTareasSemanalesAtrasadasAsync(DateTime hoy)
+        {
+            var fechaHoy = hoy.Date;
+            return await _context.Tareas
+                .Where(t => t.Tipo == TipoTarea.Weekly
+                         && t.Fecha.HasValue
+                         && t.Fecha.Value.Date < fechaHoy
+                         && !t.Completada)
+                .ToListAsync();
+        }
+
+        public async Task<TareaEntity?> GetTareaByIdAsync(int id)
         {
             return await _context.Tareas.FindAsync(id);
         }
@@ -96,7 +145,10 @@ namespace CheckList.Core.Tarea.DataAccess
         {
             var fechaHoy = fecha.Date;
             return await _context.Tareas
-                .Where(t => t.Tipo == "specific" && t.Completada && t.Fecha.HasValue && t.Fecha.Value.Date < fechaHoy)
+                .Where(t => t.Tipo == TipoTarea.Specific
+                         && t.Completada
+                         && t.Fecha.HasValue
+                         && t.Fecha.Value.Date < fechaHoy)
                 .ToListAsync();
         }
     }

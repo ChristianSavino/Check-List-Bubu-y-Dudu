@@ -4,10 +4,11 @@ namespace CheckList.Core.Tarea.Domain
     {
         public int Id { get; set; }
         public string Nombre { get; set; }
-        public string Tipo { get; set; } // "daily" o "specific"
-        public DateTime? Fecha { get; set; } // NULL para tareas diarias
-        public string Hora { get; set; } // Opcional
-        public string Persona { get; set; } // "Bubu", "Dudu", o vacío
+        public TipoTarea Tipo { get; set; }
+        public DateTime? Fecha { get; set; }       // NULL para Daily. Para Weekly es la fecha en que fue creada/asignada por última vez
+        public DayOfWeek? DiaSemana { get; set; }  // Solo para Weekly
+        public string Hora { get; set; }
+        public string Persona { get; set; }        // "Bubu", "Dudu", o vacío
         public bool Completada { get; set; }
         public DateTime FechaCreacion { get; set; }
         public DateTime FechaActualizacion { get; set; }

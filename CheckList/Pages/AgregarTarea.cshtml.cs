@@ -49,7 +49,7 @@ namespace CheckList.Pages
                     if (tarea != null)
                     {
                         Nombre = tarea.Nombre;
-                        Tipo = tarea.Tipo;
+                        Tipo = tarea.Tipo.ToString().ToLower();
                         Fecha = tarea.Fecha?.ToString("yyyy-MM-dd") ?? "";
                         Hora = tarea.Hora ?? "";
                         Persona = tarea.Persona ?? "";
@@ -102,7 +102,7 @@ namespace CheckList.Pages
                     if (tarea != null)
                     {
                         tarea.Nombre = Nombre;
-                        tarea.Tipo = Tipo;
+                        tarea.Tipo = Enum.Parse<TipoTarea>(Tipo, true);
                         tarea.Fecha = !string.IsNullOrWhiteSpace(Fecha) ? DateTime.Parse(Fecha) : null;
                         tarea.Hora = Hora ?? "";
                         tarea.Persona = Persona ?? "";
@@ -115,7 +115,7 @@ namespace CheckList.Pages
                     var tarea = new TareaEntity
                     {
                         Nombre = Nombre,
-                        Tipo = Tipo,
+                        Tipo = Enum.Parse<TipoTarea>(Tipo, true),
                         Fecha = !string.IsNullOrWhiteSpace(Fecha) ? DateTime.Parse(Fecha) : null,
                         Hora = Hora ?? "",
                         Persona = Persona ?? "",

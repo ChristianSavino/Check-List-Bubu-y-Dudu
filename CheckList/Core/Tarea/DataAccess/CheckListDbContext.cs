@@ -16,19 +16,33 @@ namespace CheckList.Core.Tarea.DataAccess
         {
             base.OnModelCreating(modelBuilder);
 
-            // Configurar Tareas
             modelBuilder.Entity<TareaEntity>(entity =>
             {
                 entity.HasKey(e => e.Id);
                 entity.Property(e => e.Nombre).IsRequired().HasMaxLength(255);
-                entity.Property(e => e.Tipo).IsRequired().HasMaxLength(20);
+
+                // Guardar el enum como string legible en la DB
+                entity.Property(e => e.Tipo)
+                    .IsRequired()
+                    .HasMaxLength(20)
+                    .HasConversion(
+                        v => v.ToString().ToLower(),
+                        v => Enum.Parse<TipoTarea>(v, true)
+                    );
+
+                entity.Property(e => e.DiaSemana)
+                    .HasMaxLength(10)
+                    .HasConversion(
+                        v => v.HasValue ? v.Value.ToString() : null,
+                         v => v != null ? (DayOfWeek?)Enum.Parse<DayOfWeek>(v, true) : null
+                    );
+
                 entity.Property(e => e.Hora).HasMaxLength(5);
                 entity.Property(e => e.Persona).HasMaxLength(50);
                 entity.Property(e => e.FechaCreacion).HasDefaultValueSql("CURRENT_TIMESTAMP");
                 entity.Property(e => e.FechaActualizacion).HasDefaultValueSql("CURRENT_TIMESTAMP");
             });
 
-            // Configurar AppSettings
             modelBuilder.Entity<AppSetting>(entity =>
             {
                 entity.HasKey(e => e.Id);

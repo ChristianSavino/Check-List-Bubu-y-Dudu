@@ -8,8 +8,10 @@ namespace CheckList.Core.Tarea.Logic
         Task<List<TareaEntity>> GetTareasHoyAsync();
         Task<List<TareaEntity>> GetTareasDiariaAsync();
         Task<List<TareaEntity>> GetTareasMañanaAsync();
+        Task<List<TareaEntity>> GetTareasSemanalesHoyAsync();
+        Task<List<TareaEntity>> GetTareasSemanalesMañanaAsync();
         Task<List<TareaEntity>> GetTodasLasTareasAsync();
-        Task<TareaEntity> GetTareaByIdAsync(int id);
+        Task<TareaEntity?> GetTareaByIdAsync(int id);
         Task CrearTareaAsync(TareaEntity tarea);
         Task ActualizarTareaAsync(TareaEntity tarea);
         Task EliminarTareaAsync(int id);
@@ -26,37 +28,36 @@ namespace CheckList.Core.Tarea.Logic
         }
 
         public async Task<List<TareaEntity>> GetTareasHoyAsync()
-        {
-            return await _repository.GetTareasHoyAsync(DateTime.Now);
-        }
+            => await _repository.GetTareasHoyAsync(DateTime.Now);
 
         public async Task<List<TareaEntity>> GetTareasDiariaAsync()
-        {
-            return await _repository.GetTareasDiariaAsync();
-        }
+            => await _repository.GetTareasDiariaAsync();
 
         public async Task<List<TareaEntity>> GetTareasMañanaAsync()
-        {
-            return await _repository.GetTareasMañanaAsync(DateTime.Now);
-        }
+            => await _repository.GetTareasMañanaAsync(DateTime.Now);
+
+        public async Task<List<TareaEntity>> GetTareasSemanalesHoyAsync()
+            => await _repository.GetTareasSemanalesHoyAsync(DateTime.Now);
+
+        public async Task<List<TareaEntity>> GetTareasSemanalesMañanaAsync()
+            => await _repository.GetTareasSemanalesMañanaAsync(DateTime.Now);
 
         public async Task<List<TareaEntity>> GetTodasLasTareasAsync()
-        {
-            return await _repository.GetTareasAsync();
-        }
+            => await _repository.GetTareasAsync();
 
-        public async Task<TareaEntity> GetTareaByIdAsync(int id)
-        {
-            return await _repository.GetTareaByIdAsync(id);
-        }
+        public async Task<TareaEntity?> GetTareaByIdAsync(int id)
+            => await _repository.GetTareaByIdAsync(id);
 
         public async Task CrearTareaAsync(TareaEntity tarea)
         {
             if (string.IsNullOrWhiteSpace(tarea.Nombre))
                 throw new ArgumentException("El nombre de la tarea es requerido");
 
-            if (tarea.Tipo == "specific" && !tarea.Fecha.HasValue)
+            if (tarea.Tipo == TipoTarea.Specific && !tarea.Fecha.HasValue)
                 throw new ArgumentException("Las tareas específicas requieren una fecha");
+
+            if (tarea.Tipo == TipoTarea.Weekly && !tarea.DiaSemana.HasValue)
+                throw new ArgumentException("Las tareas semanales requieren un día de la semana");
 
             await _repository.AddTareaAsync(tarea);
         }
@@ -66,16 +67,17 @@ namespace CheckList.Core.Tarea.Logic
             if (string.IsNullOrWhiteSpace(tarea.Nombre))
                 throw new ArgumentException("El nombre de la tarea es requerido");
 
-            if (tarea.Tipo == "specific" && !tarea.Fecha.HasValue)
+            if (tarea.Tipo == TipoTarea.Specific && !tarea.Fecha.HasValue)
                 throw new ArgumentException("Las tareas específicas requieren una fecha");
+
+            if (tarea.Tipo == TipoTarea.Weekly && !tarea.DiaSemana.HasValue)
+                throw new ArgumentException("Las tareas semanales requieren un día de la semana");
 
             await _repository.UpdateTareaAsync(tarea);
         }
 
         public async Task EliminarTareaAsync(int id)
-        {
-            await _repository.DeleteTareaAsync(id);
-        }
+            => await _repository.DeleteTareaAsync(id);
 
         public async Task ToggleTareaAsync(int id)
         {
