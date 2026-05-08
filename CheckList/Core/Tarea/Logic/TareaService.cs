@@ -7,9 +7,9 @@ namespace CheckList.Core.Tarea.Logic
     {
         Task<List<TareaEntity>> GetTareasHoyAsync();
         Task<List<TareaEntity>> GetTareasDiariaAsync();
-        Task<List<TareaEntity>> GetTareasMañanaAsync();
+        Task<List<TareaEntity>> GetTareasMaÃ±anaAsync();
         Task<List<TareaEntity>> GetTareasSemanalesHoyAsync();
-        Task<List<TareaEntity>> GetTareasSemanalesMañanaAsync();
+        Task<List<TareaEntity>> GetTareasSemanalesMaÃ±anaAsync();
         Task<List<TareaEntity>> GetTodasLasTareasAsync();
         Task<TareaEntity?> GetTareaByIdAsync(int id);
         Task CrearTareaAsync(TareaEntity tarea);
@@ -33,14 +33,14 @@ namespace CheckList.Core.Tarea.Logic
         public async Task<List<TareaEntity>> GetTareasDiariaAsync()
             => await _repository.GetTareasDiariaAsync();
 
-        public async Task<List<TareaEntity>> GetTareasMañanaAsync()
-            => await _repository.GetTareasMañanaAsync(DateTime.Now);
+        public async Task<List<TareaEntity>> GetTareasMaÃ±anaAsync()
+            => await _repository.GetTareasMaÃ±anaAsync(DateTime.Now);
 
         public async Task<List<TareaEntity>> GetTareasSemanalesHoyAsync()
             => await _repository.GetTareasSemanalesHoyAsync(DateTime.Now);
 
-        public async Task<List<TareaEntity>> GetTareasSemanalesMañanaAsync()
-            => await _repository.GetTareasSemanalesMañanaAsync(DateTime.Now);
+        public async Task<List<TareaEntity>> GetTareasSemanalesMaÃ±anaAsync()
+            => await _repository.GetTareasSemanalesMaÃ±anaAsync(DateTime.Now);
 
         public async Task<List<TareaEntity>> GetTodasLasTareasAsync()
             => await _repository.GetTareasAsync();
@@ -54,10 +54,10 @@ namespace CheckList.Core.Tarea.Logic
                 throw new ArgumentException("El nombre de la tarea es requerido");
 
             if (tarea.Tipo == TipoTarea.Specific && !tarea.Fecha.HasValue)
-                throw new ArgumentException("Las tareas específicas requieren una fecha");
+                throw new ArgumentException("Las tareas especÃ­ficas requieren una fecha");
 
             if (tarea.Tipo == TipoTarea.Weekly && !tarea.DiaSemana.HasValue)
-                throw new ArgumentException("Las tareas semanales requieren un día de la semana");
+                throw new ArgumentException("Las tareas semanales requieren un dÃ­a de la semana");
 
             await _repository.AddTareaAsync(tarea);
         }
@@ -68,10 +68,10 @@ namespace CheckList.Core.Tarea.Logic
                 throw new ArgumentException("El nombre de la tarea es requerido");
 
             if (tarea.Tipo == TipoTarea.Specific && !tarea.Fecha.HasValue)
-                throw new ArgumentException("Las tareas específicas requieren una fecha");
+                throw new ArgumentException("Las tareas especÃ­ficas requieren una fecha");
 
             if (tarea.Tipo == TipoTarea.Weekly && !tarea.DiaSemana.HasValue)
-                throw new ArgumentException("Las tareas semanales requieren un día de la semana");
+                throw new ArgumentException("Las tareas semanales requieren un dÃ­a de la semana");
 
             await _repository.UpdateTareaAsync(tarea);
         }

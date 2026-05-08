@@ -66,13 +66,13 @@ namespace CheckList.Pages
         {
             try
             {
-                // Asegurar que Persona siempre tiene un valor v·lido
+                // Asegurar que Persona siempre tiene un valor v√°lido
                 if (Persona == null)
                 {
                     Persona = "";
                 }
 
-                // CRÕTICO: Limpiar hora/fecha para tareas diarias
+                // CR√çTICO: Limpiar hora/fecha para tareas diarias
                 if (Tipo == "daily")
                 {
                     Hora = "";
@@ -81,17 +81,17 @@ namespace CheckList.Pages
                     ModelState.Remove("Fecha");
                 }
 
-                // VALIDACI”N MANUAL - No depender de ModelState
+                // VALIDACI√ìN MANUAL - No depender de ModelState
                 if (string.IsNullOrWhiteSpace(Nombre))
                 {
                     ModelState.AddModelError("Nombre", "El nombre de la tarea es obligatorio");
                     return Page();
                 }
 
-                // Validar que tarea especÌfica tiene fecha
+                // Validar que tarea espec√≠fica tiene fecha
                 if (Tipo == "specific" && string.IsNullOrWhiteSpace(Fecha))
                 {
-                    ModelState.AddModelError("Fecha", "La fecha es obligatoria para tareas especÌficas");
+                    ModelState.AddModelError("Fecha", "La fecha es obligatoria para tareas espec√≠ficas");
                     return Page();
                 }
 

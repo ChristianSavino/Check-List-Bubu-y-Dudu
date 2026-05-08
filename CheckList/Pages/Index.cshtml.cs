@@ -34,7 +34,7 @@ namespace CheckList.Pages
                 var tareasDiarias = await _tareaService.GetTareasDiariaAsync();
                 var tareasSemanales = await _tareaService.GetTareasSemanalesHoyAsync();
                 var tareasHoy = await _tareaService.GetTareasHoyAsync();
-                var tareasMañana = await _tareaService.GetTareasMañanaAsync();
+                var tareasMaÃ±ana = await _tareaService.GetTareasMaÃ±anaAsync();
 
                 Daily = tareasDiarias
                     .Where(t => !string.IsNullOrWhiteSpace(t.Nombre))
@@ -51,7 +51,7 @@ namespace CheckList.Pages
                     .Select(t => MapToDto(t, hoy))
                     .ToList();
 
-                Tomorrow = tareasMañana
+                Tomorrow = tareasMaÃ±ana
                     .Where(t => !string.IsNullOrWhiteSpace(t.Nombre))
                     .Select(t => MapToDto(t, hoy))
                     .ToList();
@@ -93,7 +93,7 @@ namespace CheckList.Pages
 
         private static TareaDto MapToDto(TareaEntity t, DateTime hoy)
         {
-            // Calcular días de atraso on-the-fly desde la Fecha original
+            // Calcular dÃ­as de atraso on-the-fly desde la Fecha original
             int diasAtraso = 0;
             if (t.Fecha.HasValue && t.Fecha.Value.Date < hoy && !t.Completada)
                 diasAtraso = (hoy - t.Fecha.Value.Date).Days;

@@ -1,4 +1,4 @@
-﻿using CheckList.Core.Tarea.Domain;
+using CheckList.Core.Tarea.Domain;
 
 namespace CheckList.Core.Utils
 {

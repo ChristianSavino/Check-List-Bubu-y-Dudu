@@ -1,4 +1,4 @@
-﻿namespace CheckList.Core.Tarea.Domain
+namespace CheckList.Core.Tarea.Domain
 {
     public enum TipoTarea
     {

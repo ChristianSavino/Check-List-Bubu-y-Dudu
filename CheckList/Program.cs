@@ -47,7 +47,7 @@ using (var scope = app.Services.CreateScope())
 {
     var dbContext = scope.ServiceProvider.GetRequiredService<CheckListDbContext>();
 
-    // EnsureCreated no corre migraciones — usamos MigrateAsync para aplicar cambios de esquema
+    // EnsureCreated no corre migraciones, usamos MigrateAsync para aplicar cambios de esquema
     await dbContext.Database.EnsureCreatedAsync();
 
     // Agregar columna DiaSemana si no existe (para DBs existentes sin migraciones)
