@@ -17,6 +17,7 @@ namespace CheckList.Core.Tarea.DataAccess
         Task DeleteTareaAsync(int id);
         Task<List<TareaEntity>> GetTareasAtrasadasAsync(DateTime hoy);
         Task<List<TareaEntity>> GetTareasSemanalesAtrasadasAsync(DateTime hoy);
+        Task<List<TareaEntity>> GetTareasSemanalesCompletadasAsync(DateTime hoy);
         Task<List<TareaEntity>> GetTareasEspecificasCompletadasAntesDeAsync(DateTime fecha);
     }
 
@@ -38,6 +39,7 @@ namespace CheckList.Core.Tarea.DataAccess
         {
             return await _context.Tareas
                 .Where(t => t.Tipo == TipoTarea.Daily)
+                .OrderBy(t => t.Orden)
                 .ToListAsync();
         }
 
@@ -48,6 +50,7 @@ namespace CheckList.Core.Tarea.DataAccess
                 .Where(t => t.Tipo == TipoTarea.Specific
                          && t.Fecha.HasValue
                          && t.Fecha.Value.Date == fechaHoy)
+                .OrderBy(t => t.Orden)
                 .ToListAsync();
         }
 
@@ -58,6 +61,7 @@ namespace CheckList.Core.Tarea.DataAccess
                 .Where(t => t.Tipo == TipoTarea.Specific
                          && t.Fecha.HasValue
                          && t.Fecha.Value.Date == fechaMañana)
+                .OrderBy(t => t.Orden)
                 .ToListAsync();
         }
 
@@ -72,6 +76,7 @@ namespace CheckList.Core.Tarea.DataAccess
                          && t.DiaSemana.HasValue
                          && (t.DiaSemana.Value == diaHoy
                              || (t.Fecha.HasValue && t.Fecha.Value.Date < fechaHoy && !t.Completada)))
+                .OrderBy(t => t.Orden)
                 .ToListAsync();
         }
 
@@ -84,6 +89,7 @@ namespace CheckList.Core.Tarea.DataAccess
                 .Where(t => t.Tipo == TipoTarea.Weekly
                          && t.DiaSemana.HasValue
                          && t.DiaSemana.Value == diaMañana)
+                .OrderBy(t => t.Orden)
                 .ToListAsync();
         }
 
@@ -95,6 +101,7 @@ namespace CheckList.Core.Tarea.DataAccess
                          && t.Fecha.HasValue
                          && t.Fecha.Value.Date < fechaHoy
                          && !t.Completada)
+                .OrderBy(t => t.Orden)
                 .ToListAsync();
         }
 
@@ -108,6 +115,21 @@ namespace CheckList.Core.Tarea.DataAccess
                          && t.Fecha.HasValue
                          && t.Fecha.Value.Date < fechaHoy
                          && !t.Completada)
+                .OrderBy(t => t.Orden)
+                .ToListAsync();
+        }
+
+        // Weekly completadas cuya última fecha asignada fue antes de hoy
+        // (necesarias para resetear el ciclo cuando el día vuelve a tocar)
+        public async Task<List<TareaEntity>> GetTareasSemanalesCompletadasAsync(DateTime hoy)
+        {
+            var fechaHoy = hoy.Date;
+            return await _context.Tareas
+                .Where(t => t.Tipo == TipoTarea.Weekly
+                         && t.Fecha.HasValue
+                         && t.Fecha.Value.Date < fechaHoy
+                         && t.Completada)
+                .OrderBy(t => t.Orden)
                 .ToListAsync();
         }
 

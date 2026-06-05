@@ -4,6 +4,7 @@ using CheckList.Hubs;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.RazorPages;
 using Microsoft.AspNetCore.SignalR;
+using CoreTareaDto = CheckList.Core.Tarea.Domain.TareaDto;
 
 namespace CheckList.Pages
 {
@@ -14,7 +15,6 @@ namespace CheckList.Pages
         private readonly ILogger<IndexModel> _logger;
 
         public List<TareaDto> Daily { get; set; } = new();
-        public List<TareaDto> Weekly { get; set; } = new();
         public List<TareaDto> Today { get; set; } = new();
         public List<TareaDto> Tomorrow { get; set; } = new();
 
@@ -31,35 +31,50 @@ namespace CheckList.Pages
             {
                 var hoy = DateTime.Now.Date;
 
+                // Obtener todas las tareas
                 var tareasDiarias = await _tareaService.GetTareasDiariaAsync();
-                var tareasSemanales = await _tareaService.GetTareasSemanalesHoyAsync();
+                var tareasSemanalesHoy = await _tareaService.GetTareasSemanalesHoyAsync();
+                var tareasSemanalesMañana = await _tareaService.GetTareasSemanalesMañanaAsync();
                 var tareasHoy = await _tareaService.GetTareasHoyAsync();
                 var tareasMañana = await _tareaService.GetTareasMañanaAsync();
 
-                Daily = tareasDiarias
-                    .Where(t => !string.IsNullOrWhiteSpace(t.Nombre))
-                    .Select(t => MapToDto(t, hoy))
-                    .ToList();
+                // Mapear tareas diarias
+                Daily = ConvertirDtos(TareaMapper.MapToList(tareasDiarias, hoy));
 
-                Weekly = tareasSemanales
-                    .Where(t => !string.IsNullOrWhiteSpace(t.Nombre))
-                    .Select(t => MapToDto(t, hoy))
-                    .ToList();
+                // Combinar tareas de hoy: específicas + semanales del día
+                var tareasHoyCombinadas = new List<CoreTareaDto>();
+                tareasHoyCombinadas.AddRange(TareaMapper.MapToList(tareasHoy, hoy));
+                tareasHoyCombinadas.AddRange(TareaMapper.MapToList(tareasSemanalesHoy, hoy));
+                Today = ConvertirDtos(tareasHoyCombinadas);
 
-                Today = tareasHoy
-                    .Where(t => !string.IsNullOrWhiteSpace(t.Nombre))
-                    .Select(t => MapToDto(t, hoy))
-                    .ToList();
-
-                Tomorrow = tareasMañana
-                    .Where(t => !string.IsNullOrWhiteSpace(t.Nombre))
-                    .Select(t => MapToDto(t, hoy))
-                    .ToList();
+                // Combinar tareas de mañana: específicas + semanales del día
+                var tareasMañanaCombinadas = new List<CoreTareaDto>();
+                tareasMañanaCombinadas.AddRange(TareaMapper.MapToList(tareasMañana, hoy));
+                tareasMañanaCombinadas.AddRange(TareaMapper.MapToList(tareasSemanalesMañana, hoy));
+                Tomorrow = ConvertirDtos(tareasMañanaCombinadas);
             }
             catch (Exception ex)
             {
                 _logger.LogError(ex, "Error al cargar tareas");
             }
+        }
+
+        /// <summary>
+        /// Convierte CoreTareaDto a TareaDto para la UI incluyendo el tipo de tarea
+        /// </summary>
+        private static List<TareaDto> ConvertirDtos(List<CoreTareaDto> dtos)
+        {
+            return dtos.Select(d => new TareaDto
+            {
+                Id = d.Id,
+                Label = d.Nombre,
+                Done = d.Completada,
+                Time = d.Hora,
+                Persona = d.Persona,
+                DiasAtraso = d.DiasAtraso,
+                TipoTarea = d.TipoTarea,
+                TipoTareaLabel = d.TipoTareaLabel
+            }).ToList();
         }
 
         public async Task<IActionResult> OnPostToggleAsync(int id)
@@ -90,26 +105,11 @@ namespace CheckList.Pages
                 return BadRequest();
             }
         }
-
-        private static TareaDto MapToDto(TareaEntity t, DateTime hoy)
-        {
-            // Calcular días de atraso on-the-fly desde la Fecha original
-            int diasAtraso = 0;
-            if (t.Fecha.HasValue && t.Fecha.Value.Date < hoy && !t.Completada)
-                diasAtraso = (hoy - t.Fecha.Value.Date).Days;
-
-            return new TareaDto
-            {
-                Id = t.Id,
-                Label = t.Nombre,
-                Done = t.Completada,
-                Time = t.Hora ?? "",
-                Persona = t.Persona ?? "",
-                DiasAtraso = diasAtraso
-            };
-        }
     }
 
+    /// <summary>
+    /// DTO para la página Index con propiedades específicas de la UI
+    /// </summary>
     public class TareaDto
     {
         public int Id { get; set; }
@@ -118,5 +118,7 @@ namespace CheckList.Pages
         public string Time { get; set; } = "";
         public string Persona { get; set; } = "";
         public int DiasAtraso { get; set; }
+        public string TipoTarea { get; set; } = "";
+        public string TipoTareaLabel { get; set; } = "";
     }
 }

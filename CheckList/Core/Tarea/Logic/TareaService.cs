@@ -16,6 +16,7 @@ namespace CheckList.Core.Tarea.Logic
         Task ActualizarTareaAsync(TareaEntity tarea);
         Task EliminarTareaAsync(int id);
         Task ToggleTareaAsync(int id);
+        Task ReordenarTareasAsync(List<int> ids);
     }
 
     public class TareaService : ITareaService
@@ -86,6 +87,19 @@ namespace CheckList.Core.Tarea.Logic
             {
                 tarea.Completada = !tarea.Completada;
                 await _repository.UpdateTareaAsync(tarea);
+            }
+        }
+
+        public async Task ReordenarTareasAsync(List<int> ids)
+        {
+            for (int i = 0; i < ids.Count; i++)
+            {
+                var tarea = await _repository.GetTareaByIdAsync(ids[i]);
+                if (tarea != null)
+                {
+                    tarea.Orden = i;
+                    await _repository.UpdateTareaAsync(tarea);
+                }
             }
         }
     }

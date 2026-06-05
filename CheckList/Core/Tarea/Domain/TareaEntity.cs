@@ -10,6 +10,7 @@ namespace CheckList.Core.Tarea.Domain
         public string Hora { get; set; }
         public string Persona { get; set; }        // "Bubu", "Dudu", o vacío
         public bool Completada { get; set; }
+        public int Orden { get; set; }             // Para ordenamiento manual
         public DateTime FechaCreacion { get; set; }
         public DateTime FechaActualizacion { get; set; }
     }

@@ -35,5 +35,25 @@ namespace CheckList.Api
                 return StatusCode(500, "Error al toggle tarea");
             }
         }
+
+        [HttpPost("reorder")]
+        public async Task<IActionResult> Reorder([FromBody] List<int> ids)
+        {
+            try
+            {
+                if (ids == null || ids.Count == 0)
+                {
+                    return BadRequest("IDs no pueden estar vacías");
+                }
+
+                await _tareaService.ReordenarTareasAsync(ids);
+                return Ok();
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error al reordenar tareas");
+                return StatusCode(500, "Error al reordenar tareas");
+            }
+        }
     }
 }

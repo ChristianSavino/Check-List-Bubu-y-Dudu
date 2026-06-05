@@ -20,17 +20,6 @@
             <div class="card" id="daily-list"></div>
         </div>
 
-        @* SEMANALES *@
-        <div>
-            <div class="col-header">
-                <svg width="13" height="13" viewBox="0 0 13 13" fill="none"><rect x="0.5" y="1.5" width="12" height="10" rx="1.5" stroke="currentColor" stroke-width="1.1" /><path d="M4 0.5v2M9 0.5v2M0.5 5.5h12" stroke="currentColor" stroke-width="1.1" stroke-linecap="round" /><path d="M3.5 8.5h2M7.5 8.5h2" stroke="currentColor" stroke-width="1.1" stroke-linecap="round" /></svg>
-                Esta semana
-                <span class="badge" id="weekly-badge">@Model.Weekly.Count</span>
-            </div>
-            <div class="progress-bar-wrap"><div class="progress-bar" id="weekly-progress" style="width:@(Model.Weekly.Count > 0 ? Math.Round((double)Model.Weekly.Count(t => t.Done) / Model.Weekly.Count * 100) : 0)%"></div></div>
-            <div class="card" id="weekly-list"></div>
-        </div>
-
         @* HOY *@
         <div>
             <div class="col-header">
@@ -74,13 +63,11 @@
 
     // ─── Estado inicial desde servidor ───────────────────────────────────────
     const dailyData   = @Html.Raw(System.Text.Json.JsonSerializer.Serialize(Model.Daily));
-    const weeklyData  = @Html.Raw(System.Text.Json.JsonSerializer.Serialize(Model.Weekly));
     const todayData   = @Html.Raw(System.Text.Json.JsonSerializer.Serialize(Model.Today));
     const tomorrowData = @Html.Raw(System.Text.Json.JsonSerializer.Serialize(Model.Tomorrow));
 
     let state = {
     daily:    dailyData    || [],
-    weekly:   weeklyData   || [],
     today:    todayData    || [],
     tomorrow: tomorrowData || []
     };
@@ -120,7 +107,7 @@
     : '';
     }
 
-    // ─── Render de lista con checkboxes (Daily, Weekly, Today) ───────────────
+    // ─── Render de lista con checkboxes (Daily, Today) ───────────────
     function renderCheckList(listId, tasks, badgeId, progressId) {
     const el = document.getElementById(listId);
     document.getElementById(badgeId).textContent = tasks.length;
@@ -134,7 +121,10 @@
     <div class="task-item" onclick="toggle(${t.Id})">
     <div class="checkbox${t.Done ? ' checked' : ''}">${t.Done ? checkSVG() : ''}</div>
     <div class="task-info">
-    <div class="task-label${t.Done ? ' done' : ''}">${escapeHtml(t.Label || '')}</div>
+    <div class="task-label${t.Done ? ' done' : ''}">
+    ${escapeHtml(t.Label || '')}
+    ${t.TipoTareaLabel ? `<span class="task-type">${escapeHtml(t.TipoTareaLabel)}</span>` : ''}
+    </div>
     ${renderMeta(t)}
     </div>
     </div>`).join('');
@@ -149,7 +139,10 @@
     <div class="tomorrow-item">
     <div class="tomorrow-dot"></div>
     <div class="task-info">
-    <div class="task-label">${escapeHtml(t.Label || '')}</div>
+    <div class="task-label">
+    ${escapeHtml(t.Label || '')}
+    ${t.TipoTareaLabel ? `<span class="task-type">${escapeHtml(t.TipoTareaLabel)}</span>` : ''}
+    </div>
     ${renderMeta(t)}
     </div>
     </div>`).join('');
@@ -158,7 +151,6 @@
     // ─── Render global ────────────────────────────────────────────────────────
     function render() {
     renderCheckList('daily-list',  state.daily,   'daily-badge',  'daily-progress');
-    renderCheckList('weekly-list', state.weekly,  'weekly-badge', 'weekly-progress');
     renderCheckList('today-list',  state.today,   'today-badge',  'today-progress');
     renderTomorrowList(state.tomorrow);
     }
@@ -185,7 +177,7 @@
 
     function applyToggle(id) {
     let found = false;
-    for (const key of ['daily', 'weekly', 'today', 'tomorrow']) {
+    for (const key of ['daily', 'today', 'tomorrow']) {
     const task = state[key].find(t => t.Id === id);
     if (task) {
     task.Done = !task.Done;
@@ -206,7 +198,7 @@
     connection.on("TaskToggled", (data) => {
     // Solo aplicar si el estado local no coincide ya (evita doble-toggle propio)
     let alreadyMatches = false;
-    for (const key of ['daily', 'weekly', 'today', 'tomorrow']) {
+    for (const key of ['daily', 'today', 'tomorrow']) {
     const task = state[key].find(t => t.Id === data.id);
     if (task) {
     if (task.Done !== data.completada) {

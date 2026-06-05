@@ -57,18 +57,23 @@ namespace CheckList.Core.Tarea.Logic
 
             // 4. Resetear tareas semanales completadas cuyo día vuelve a tocar hoy
             var diaHoy = hoy.DayOfWeek;
-            var tareasSemanales = await _tareaRepository.GetTareasSemanalesAtrasadasAsync(hoy);
-            foreach (var tarea in tareasSemanales)
+
+            // Primero, resetear las que ESTÁN completadas
+            var tareasSemanalesCompletadas = await _tareaRepository.GetTareasSemanalesCompletadasAsync(hoy);
+            foreach (var tarea in tareasSemanalesCompletadas)
             {
-                // Si la tarea estaba completada en su semana anterior, la reseteamos
-                // Si no estaba completada, la dejamos con su Fecha original (ya aparece como atrasada)
-                if (tarea.Completada)
-                {
-                    tarea.Completada = false;
-                    tarea.Fecha = hoy; // Reiniciamos el ciclo desde hoy
-                    await _tareaRepository.UpdateTareaAsync(tarea);
-                }
-                // Si !Completada: no tocamos Fecha, así el frontend puede calcular el atraso
+                tarea.Completada = false;
+                tarea.Fecha = hoy;
+                await _tareaRepository.UpdateTareaAsync(tarea);
+            }
+
+            // Luego, dejar las incompletas tal cual (solo aparecen atrasadas)
+            var tareasSemanalesIncompletas = await _tareaRepository.GetTareasSemanalesAtrasadasAsync(hoy);
+            foreach (var tarea in tareasSemanalesIncompletas)
+            {
+                // No tocamos Fecha ni Completada — la fecha original indica los días atrasada
+                // Solo nos aseguramos de que siga en la BD
+                await _tareaRepository.UpdateTareaAsync(tarea);
             }
 
             // 5. Guardar fecha de última limpieza

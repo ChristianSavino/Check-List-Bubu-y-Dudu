@@ -19,6 +19,7 @@ builder.Services.AddHttpsRedirection(options =>
 // Entity Framework Core + SQLite
 builder.Services.AddDbContext<CheckListDbContext>(options =>
     options.UseSqlite("Data Source=checklist.db")
+           .LogTo(_ => { }, Microsoft.Extensions.Logging.LogLevel.None)
 );
 
 // Repositorios
@@ -65,6 +66,12 @@ using (var scope = app.Services.CreateScope())
     if (!columns.Contains("DiaSemana"))
     {
         cmd.CommandText = "ALTER TABLE Tareas ADD COLUMN DiaSemana TEXT;";
+        await cmd.ExecuteNonQueryAsync();
+    }
+
+    if (!columns.Contains("Orden"))
+    {
+        cmd.CommandText = "ALTER TABLE Tareas ADD COLUMN Orden INTEGER NOT NULL DEFAULT 0;";
         await cmd.ExecuteNonQueryAsync();
     }
     await conn.CloseAsync();
