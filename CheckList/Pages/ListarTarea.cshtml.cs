@@ -1,3 +1,4 @@
+using CheckList.Core.Tarea.Domain;
 using CheckList.Core.Tarea.Logic;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.RazorPages;
@@ -22,16 +23,31 @@ namespace CheckList.Pages
             try
             {
                 var tareas = await _tareaService.GetTodasLasTareasAsync();
-                Tareas = tareas.Select(t => new TareaListDto
+                Tareas = tareas
+                .Select(t => new TareaListDto
                 {
                     Id = t.Id,
                     Nombre = t.Nombre,
-                    Tipo = t.Tipo,
-                    TipoLabel = t.Tipo == "daily" ? "Diaria" : "Específica",
-                    Fecha = t.Fecha?.ToString("yyyy-MM-dd"),
+                    Tipo = t.Tipo.ToString(),
+                    TipoLabel = TareaStringConverter.GetTipoTareaLabel(t.Tipo),
+                    Fecha = t.Fecha?.ToString(TareaConstants.DATE_FORMAT),
                     Hora = t.Hora ?? "",
-                    Persona = t.Persona ?? ""
-                }).ToList();
+                    Persona = t.Persona ?? "",
+                    DiaSemana = t.DiaSemana.HasValue
+                        ? TareaStringConverter.GetDayOfWeekLabel(t.DiaSemana.Value)
+                        : "",
+                    Orden = t.Orden
+                })
+                .OrderBy(t => t.Tipo == "Specific" ? 1 : 0)
+                .ThenBy(t =>
+                    t.Tipo == "Specific" && !string.IsNullOrEmpty(t.Fecha)
+                        ? DateTime.Parse(t.Fecha)
+                        : DateTime.MinValue)
+                .ThenBy(t =>
+                    t.Tipo == "Specific"
+                        ? t.Hora
+                        : "")
+                .ToList();
             }
             catch (Exception ex)
             {
@@ -60,8 +76,10 @@ namespace CheckList.Pages
         public string Nombre { get; set; }
         public string Tipo { get; set; }
         public string TipoLabel { get; set; }
-        public string Fecha { get; set; }
+        public string? Fecha { get; set; }
         public string Hora { get; set; }
         public string Persona { get; set; }
+        public string DiaSemana { get; set; }
+        public int Orden { get; set; }
     }
 }

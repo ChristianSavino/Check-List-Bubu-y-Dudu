@@ -29,9 +29,10 @@
 
                     <div class="form-group" style="margin-bottom: 1rem;">
                         <label class="form-label" for="tipo">Tipo de tarea *</label>
-                        <select class="form-control" id="tipo" asp-for="Tipo" onchange="toggleFechaHora()">
-                            <option value="daily">Tarea Diaria (todos los d�as)</option>
-                            <option value="specific">Tarea Espec�fica (con fecha)</option>
+                        <select class="form-control" id="tipo" asp-for="Tipo" onchange="toggleFechaHoraDia()">
+                            <option value="daily">Tarea Diaria (todos los días)</option>
+                            <option value="specific">Tarea Específica (con fecha)</option>
+                            <option value="weekly">Tarea Semanal (con día de semana)</option>
                         </select>
                     </div>
 
@@ -44,6 +45,21 @@
                     <div id="hora-wrap" style="display: none; margin-bottom: 1rem;">
                         <label class="form-label" for="hora">Hora (opcional)</label>
                         <input class="form-control" id="hora" asp-for="Hora" type="time" />
+                    </div>
+
+                    <div id="diasemana-wrap" style="display: none; margin-bottom: 1rem;">
+                        <label class="form-label" for="diasemana">Día de la semana *</label>
+                        <select class="form-control" id="diasemana" asp-for="DiaSemana">
+                            <option value="">Seleccionar día</option>
+                            <option value="Sunday">Domingo</option>
+                            <option value="Monday">Lunes</option>
+                            <option value="Tuesday">Martes</option>
+                            <option value="Wednesday">Miércoles</option>
+                            <option value="Thursday">Jueves</option>
+                            <option value="Friday">Viernes</option>
+                            <option value="Saturday">Sábado</option>
+                        </select>
+                        <span class="text-danger" asp-validation-for="DiaSemana"></span>
                     </div>
 
                     <div class="form-group" style="margin-bottom: 1rem;">
@@ -75,23 +91,30 @@
 </div>
 
 <script>
-    function toggleFechaHora() {
+    function toggleFechaHoraDia() {
         const tipo = document.getElementById('tipo').value;
         const fechaWrap = document.getElementById('fecha-wrap');
         const horaWrap = document.getElementById('hora-wrap');
-        
+        const diasemanaWrap = document.getElementById('diasemana-wrap');
+
         if (tipo === 'specific') {
             fechaWrap.style.display = 'block';
             horaWrap.style.display = 'block';
+            diasemanaWrap.style.display = 'none';
+        } else if (tipo === 'weekly') {
+            fechaWrap.style.display = 'none';
+            horaWrap.style.display = 'none';
+            diasemanaWrap.style.display = 'block';
         } else {
             fechaWrap.style.display = 'none';
             horaWrap.style.display = 'none';
+            diasemanaWrap.style.display = 'none';
         }
     }
-    
+
     // Mostrar/ocultar en carga inicial
     document.addEventListener('DOMContentLoaded', function() {
-        toggleFechaHora();
+        toggleFechaHoraDia();
     });
 </script>
 

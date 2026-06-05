@@ -1,4 +1,4 @@
-﻿@page
+@page
 @model IndexModel
 @{
     ViewData["Title"] = "Bubu y Dudu Tareas";
@@ -7,8 +7,9 @@
 <link rel="stylesheet" href="~/css/checklist.css" asp-append-version="true" />
 
 <div class="wrapper" id="app">
-    
     <div class="main" id="main">
+
+        @* DIARIAS *@
         <div>
             <div class="col-header">
                 <svg width="13" height="13" viewBox="0 0 13 13" fill="none"><circle cx="6.5" cy="6.5" r="5.5" stroke="currentColor" stroke-width="1.1" /><path d="M6.5 4v2.5l1.5 1.5" stroke="currentColor" stroke-width="1.1" stroke-linecap="round" /></svg>
@@ -18,6 +19,8 @@
             <div class="progress-bar-wrap"><div class="progress-bar" id="daily-progress" style="width:@(Model.Daily.Count > 0 ? Math.Round((double)Model.Daily.Count(t => t.Done) / Model.Daily.Count * 100) : 0)%"></div></div>
             <div class="card" id="daily-list"></div>
         </div>
+
+        @* HOY *@
         <div>
             <div class="col-header">
                 <svg width="13" height="13" viewBox="0 0 13 13" fill="none"><rect x="0.5" y="1.5" width="12" height="10" rx="1.5" stroke="currentColor" stroke-width="1.1" /><path d="M4 0.5v2M9 0.5v2M0.5 5.5h12" stroke="currentColor" stroke-width="1.1" stroke-linecap="round" /></svg>
@@ -28,6 +31,8 @@
             <div class="progress-bar-wrap"><div class="progress-bar" id="today-progress" style="width:@(Model.Today.Count > 0 ? Math.Round((double)Model.Today.Count(t => t.Done) / Model.Today.Count * 100) : 0)%"></div></div>
             <div class="card" id="today-list"></div>
         </div>
+
+        @* MAÑANA *@
         <div>
             <div class="col-header">
                 <svg width="13" height="13" viewBox="0 0 13 13" fill="none"><rect x="0.5" y="1.5" width="12" height="10" rx="1.5" stroke="currentColor" stroke-width="1.1" /><path d="M4 0.5v2M9 0.5v2M0.5 5.5h12" stroke="currentColor" stroke-width="1.1" stroke-linecap="round" /></svg>
@@ -38,136 +43,204 @@
             <div class="progress-bar-wrap" style="visibility:hidden"><div class="progress-bar" style="width:0%"></div></div>
             <div class="card" id="tomorrow-list"></div>
         </div>
+
     </div>
 </div>
 
+@* SignalR desde CDN *@
+<script src="https://cdnjs.cloudflare.com/ajax/libs/microsoft-signalr/7.0.5/signalr.min.js"></script>
+
 <script>
-    const pad = n => String(n).padStart(2,'0');
+    // ─── Fechas ───────────────────────────────────────────────────────────────
+    const pad = n => String(n).padStart(2, '0');
     const now = new Date();
-    const tomorrow = new Date(now); tomorrow.setDate(tomorrow.getDate()+1);
-    const days = ['Dom','Lun','Mar','Mié','Jue','Vie','Sáb'];
-    const fmtShort = d => `${days[d.getDay()]} ${pad(d.getDate())}/${pad(d.getMonth()+1)}`;
+    const tomorrow = new Date(now); tomorrow.setDate(tomorrow.getDate() + 1);
+    const days = ['Dom', 'Lun', 'Mar', 'Mié', 'Jue', 'Vie', 'Sáb'];
+    const fmtShort = d => `${days[d.getDay()]} ${pad(d.getDate())}/${pad(d.getMonth() + 1)}`;
 
     document.getElementById('today-date').textContent = fmtShort(now);
     document.getElementById('tomorrow-date').textContent = fmtShort(tomorrow);
 
-    // Cargar datos desde el servidor
-    const dailyData = @Html.Raw(System.Text.Json.JsonSerializer.Serialize(Model.Daily));
-    const todayData = @Html.Raw(System.Text.Json.JsonSerializer.Serialize(Model.Today));
+    // ─── Estado inicial desde servidor ───────────────────────────────────────
+    const dailyData   = @Html.Raw(System.Text.Json.JsonSerializer.Serialize(Model.Daily));
+    const todayData   = @Html.Raw(System.Text.Json.JsonSerializer.Serialize(Model.Today));
     const tomorrowData = @Html.Raw(System.Text.Json.JsonSerializer.Serialize(Model.Tomorrow));
 
     let state = {
-      daily: dailyData || [],
-      today: todayData || [],
-      tomorrow: tomorrowData || []
+    daily:    dailyData    || [],
+    today:    todayData    || [],
+    tomorrow: tomorrowData || []
     };
 
+    // ─── SVGs helpers ─────────────────────────────────────────────────────────
     function checkSVG() {
-      return `<svg width="11" height="11" viewBox="0 0 11 11" fill="none"><path d="M2 5.5l2.5 2.5L9 3" stroke="white" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>`;
-    }
-
-    function renderCheckList(listId, tasks, badgeId, progressId) {
-      const el = document.getElementById(listId);
-      document.getElementById(badgeId).textContent = tasks.length;
-      const done = tasks.filter(t => t.Done).length;
-      document.getElementById(progressId).style.width = tasks.length ? Math.round(done / tasks.length * 100) + '%' : '0%';
-      if (!tasks.length) { el.innerHTML = emptyState(); return; }
-      el.innerHTML = tasks.map(t => `
-        <div class="task-item" onclick="toggle(${t.Id})">
-          <div class="checkbox${t.Done ? ' checked' : ''}">${t.Done ? checkSVG() : ''}</div>
-          <div class="task-info">
-            <div class="task-label${t.Done ? ' done' : ''}">${escapeHtml(t.Label || '')}</div>
-            <div class="task-meta">
-              ${t.Time ? `<span class="task-time"><svg width="10" height="10" viewBox="0 0 10 10" fill="none"><circle cx="5" cy="5" r="4" stroke="currentColor" stroke-width="1"/><path d="M5 3v2l1.5 1.5" stroke="currentColor" stroke-width="1" stroke-linecap="round"/></svg>${escapeHtml(t.Time)}</span>` : ''}
-              ${t.Persona ? `<span class="task-persona"><svg width="10" height="10" viewBox="0 0 10 10" fill="none"><circle cx="3" cy="2.5" r="1.5" stroke="currentColor" stroke-width="0.8"/><path d="M0.5 9.5c0-1.3 1.3-2.5 2.5-2.5s2.5 1.2 2.5 2.5" stroke="currentColor" stroke-width="0.8" stroke-linecap="round"/></svg>${escapeHtml(t.Persona)}</span>` : ''}
-            </div>
-          </div>
-        </div>`).join('');
-    }
-
-    function renderTomorrowList(tasks) {
-      const el = document.getElementById('tomorrow-list');
-      document.getElementById('tomorrow-badge').textContent = tasks.length;
-      if (!tasks.length) { el.innerHTML = emptyState(); return; }
-      el.innerHTML = tasks.map(t => `
-        <div class="tomorrow-item">
-          <div class="tomorrow-dot"></div>
-          <div class="task-info">
-            <div class="task-label">${escapeHtml(t.Label || '')}</div>
-            <div class="task-meta">
-              ${t.Time?`<span class="task-time"><svg width="10" height="10" viewBox="0 0 10 10" fill="none"><circle cx="5" cy="5" r="4" stroke="currentColor" stroke-width="1"/><path d="M5 3v2l1.5 1.5" stroke="currentColor" stroke-width="1" stroke-linecap="round"/></svg>${escapeHtml(t.Time)}</span>`:''}
-              ${t.Persona?`<span class="task-persona"><svg width="10" height="10" viewBox="0 0 10 10" fill="none"><circle cx="3" cy="2.5" r="1.5" stroke="currentColor" stroke-width="0.8"/><path d="M0.5 9.5c0-1.3 1.3-2.5 2.5-2.5s2.5 1.2 2.5 2.5" stroke="currentColor" stroke-width="0.8" stroke-linecap="round"/></svg>${escapeHtml(t.Persona)}</span>`:''}
-            </div>
-          </div>
-        </div>`).join('');
+    return `<svg width="11" height="11" viewBox="0 0 11 11" fill="none"><path d="M2 5.5l2.5 2.5L9 3" stroke="white" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>`;
     }
 
     function escapeHtml(text) {
-      const div = document.createElement('div');
-      div.textContent = text || '';
-      return div.innerHTML;
+    const div = document.createElement('div');
+    div.textContent = text || '';
+    return div.innerHTML;
     }
 
     function emptyState() {
-      return `<div class="empty-state"><svg width="26" height="26" viewBox="0 0 26 26" fill="none"><rect x="1" y="1" width="24" height="24" rx="5" stroke="var(--color-border-secondary)" stroke-width="1" stroke-dasharray="4 3"/><path d="M8 13h10M13 8v10" stroke="var(--color-border-secondary)" stroke-width="1.1" stroke-linecap="round"/></svg>Sin tareas</div>`;
+    return `<div class="empty-state"><svg width="26" height="26" viewBox="0 0 26 26" fill="none"><rect x="1" y="1" width="24" height="24" rx="5" stroke="var(--color-border-secondary)" stroke-width="1" stroke-dasharray="4 3"/><path d="M8 13h10M13 8v10" stroke="var(--color-border-secondary)" stroke-width="1.1" stroke-linecap="round"/></svg>Sin tareas</div>`;
     }
 
+    function timeSVG() {
+    return `<svg width="10" height="10" viewBox="0 0 10 10" fill="none"><circle cx="5" cy="5" r="4" stroke="currentColor" stroke-width="1"/><path d="M5 3v2l1.5 1.5" stroke="currentColor" stroke-width="1" stroke-linecap="round"/></svg>`;
+    }
+
+    function personaSVG() {
+    return `<svg width="10" height="10" viewBox="0 0 10 10" fill="none"><circle cx="3" cy="2.5" r="1.5" stroke="currentColor" stroke-width="0.8"/><path d="M0.5 9.5c0-1.3 1.3-2.5 2.5-2.5s2.5 1.2 2.5 2.5" stroke="currentColor" stroke-width="0.8" stroke-linecap="round"/></svg>`;
+    }
+
+    // ─── Render de meta (hora + persona + atraso) ─────────────────────────────
+    function renderMeta(t) {
+    const time    = t.Time    ? `<span class="task-time">${timeSVG()}${escapeHtml(t.Time)}</span>` : '';
+    const persona = t.Persona ? `<span class="task-persona">${personaSVG()}${escapeHtml(t.Persona)}</span>` : '';
+    const atraso  = t.DiasAtraso > 0
+    ? `<span class="task-atraso">⚠ ${t.DiasAtraso} día${t.DiasAtraso > 1 ? 's' : ''} atrasada</span>`
+    : '';
+    return (time || persona || atraso)
+    ? `<div class="task-meta">${time}${persona}${atraso}</div>`
+    : '';
+    }
+
+    // ─── Render de lista con checkboxes (Daily, Today) ───────────────
+    function renderCheckList(listId, tasks, badgeId, progressId) {
+    const el = document.getElementById(listId);
+    document.getElementById(badgeId).textContent = tasks.length;
+    const done = tasks.filter(t => t.Done).length;
+    document.getElementById(progressId).style.width =
+    tasks.length ? Math.round(done / tasks.length * 100) + '%' : '0%';
+
+    if (!tasks.length) { el.innerHTML = emptyState(); return; }
+
+    el.innerHTML = tasks.map(t => `
+    <div class="task-item" onclick="toggle(${t.Id})">
+    <div class="checkbox${t.Done ? ' checked' : ''}">${t.Done ? checkSVG() : ''}</div>
+    <div class="task-info">
+    <div class="task-label${t.Done ? ' done' : ''}">
+    ${escapeHtml(t.Label || '')}
+    ${t.TipoTareaLabel ? `<span class="task-type">${escapeHtml(t.TipoTareaLabel)}</span>` : ''}
+    </div>
+    ${renderMeta(t)}
+    </div>
+    </div>`).join('');
+    }
+
+    // ─── Render lista Mañana (sin checkboxes) ────────────────────────────────
+    function renderTomorrowList(tasks) {
+    const el = document.getElementById('tomorrow-list');
+    document.getElementById('tomorrow-badge').textContent = tasks.length;
+    if (!tasks.length) { el.innerHTML = emptyState(); return; }
+    el.innerHTML = tasks.map(t => `
+    <div class="tomorrow-item">
+    <div class="tomorrow-dot"></div>
+    <div class="task-info">
+    <div class="task-label">
+    ${escapeHtml(t.Label || '')}
+    ${t.TipoTareaLabel ? `<span class="task-type">${escapeHtml(t.TipoTareaLabel)}</span>` : ''}
+    </div>
+    ${renderMeta(t)}
+    </div>
+    </div>`).join('');
+    }
+
+    // ─── Render global ────────────────────────────────────────────────────────
     function render() {
-      renderCheckList('daily-list', state.daily, 'daily-badge', 'daily-progress');
-      renderCheckList('today-list', state.today, 'today-badge', 'today-progress');
-      renderTomorrowList(state.tomorrow);
+    renderCheckList('daily-list',  state.daily,   'daily-badge',  'daily-progress');
+    renderCheckList('today-list',  state.today,   'today-badge',  'today-progress');
+    renderTomorrowList(state.tomorrow);
     }
 
+    // ─── Toggle local + POST al servidor ─────────────────────────────────────
+    // El servidor notifica a los demás via SignalR; nosotros actualizamos local inmediatamente
+    // para que la respuesta sea instantánea sin esperar el broadcast.
     async function toggle(id) {
-      try {
+    // Actualización optimista inmediata
+    applyToggle(id);
 
-        const response = await fetch(`/api/tareas/toggle/${id}`, {
-          method: 'POST'
-        });
-
-        if (response.ok) {
-          // Buscar en todos los arrays y toggle
-          let found = false;
-          for (let key of ['daily', 'today', 'tomorrow']) {
-            const task = state[key].find(t => t.Id === id);
-            if (task) {
-              task.Done = !task.Done;
-              found = true;
-              break;
-            }
-          }
-
-          if (found) {
-            render();
-          } else {
-            console.warn('Task not found in any list:', id);
-          }
-        } else {
-          console.error('Server returned error:', response.status);
-          const text = await response.text();
-          console.error('Response body:', text);
-        }
-      } catch (error) {
-        console.error('Error al actualizar tarea:', error);
-      }
+    try {
+    const response = await fetch(`/api/tareas/toggle/${id}`, { method: 'POST' });
+    if (!response.ok) {
+    // Revertir si falló
+    applyToggle(id);
+    console.error('Error al hacer toggle:', response.status);
+    }
+    } catch (error) {
+    applyToggle(id);
+    console.error('Error de red:', error);
+    }
     }
 
+    function applyToggle(id) {
+    let found = false;
+    for (const key of ['daily', 'today', 'tomorrow']) {
+    const task = state[key].find(t => t.Id === id);
+    if (task) {
+    task.Done = !task.Done;
+    found = true;
+    break;
+    }
+    }
+    if (found) render();
+    else console.warn('Tarea no encontrada en estado local:', id);
+    }
+
+    // ─── SignalR: recibir toggles del otro cliente ────────────────────────────
+    const connection = new signalR.HubConnectionBuilder()
+    .withUrl("/checklistHub")
+    .withAutomaticReconnect()
+    .build();
+
+    connection.on("TaskToggled", (data) => {
+    // Solo aplicar si el estado local no coincide ya (evita doble-toggle propio)
+    let alreadyMatches = false;
+    for (const key of ['daily', 'today', 'tomorrow']) {
+    const task = state[key].find(t => t.Id === data.id);
+    if (task) {
+    if (task.Done !== data.completada) {
+    task.Done = data.completada;
+    render();
+    }
+    alreadyMatches = true;
+    break;
+    }
+    }
+    });
+
+    connection.onreconnecting(() => console.log('SignalR: reconectando...'));
+    connection.onreconnected(() => console.log('SignalR: reconectado'));
+
+    connection.start()
+    .then(() => console.log('SignalR conectado'))
+    .catch(err => console.error('Error al conectar SignalR:', err));
+
+    // ─── Render inicial ───────────────────────────────────────────────────────
     render();
 </script>
 
 <style>
     .task-meta {
-        font-size: 11px;
-        color: var(--color-text-tertiary);
-        margin-top: 4px;
-        display: flex;
-        align-items: center;
-        gap: 8px;
+    font-size: 11px;
+    color: var(--color-text-tertiary);
+    margin-top: 4px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    flex-wrap: wrap;
     }
 
     .task-meta span {
-        display: flex;
-        align-items: center;
-        gap: 3px;
+    display: flex;
+    align-items: center;
+    gap: 3px;
+    }
+
+    .task-atraso {
+    color: #e07b39;
+    font-weight: 500;
     }
 </style>

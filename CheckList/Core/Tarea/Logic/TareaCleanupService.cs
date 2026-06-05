@@ -22,17 +22,14 @@ namespace CheckList.Core.Tarea.Logic
         {
             var hoy = DateTime.Now.Date;
             var lastCleanup = await _settingRepository.GetSettingAsync("LastCleanupDate");
-            
-            // Si ya se ejecutó hoy, no hacer nada
+
             if (lastCleanup != null && DateTime.TryParse(lastCleanup.Value, out var lastDate))
             {
                 if (lastDate.Date == hoy)
-                {
                     return;
-                }
             }
 
-            // 1. Resetear checkboxes de tareas diarias
+            // 1. Resetear tareas diarias
             var tareasDiarias = await _tareaRepository.GetTareasDiariaAsync();
             foreach (var tarea in tareasDiarias)
             {
@@ -40,29 +37,46 @@ namespace CheckList.Core.Tarea.Logic
                 await _tareaRepository.UpdateTareaAsync(tarea);
             }
 
-            // 2. Mover tareas no completadas del día anterior a hoy con etiqueta "atrasado"
-            var ayer = hoy.AddDays(-1);
+            // 2. Mover tareas especÃ­ficas no completadas: solo actualizamos Fecha a hoy.
+            //    El atraso se calcula on-the-fly en el frontend como (hoy - Fecha).Days
             var tareasAtrasadas = await _tareaRepository.GetTareasAtrasadasAsync(hoy);
-            
             foreach (var tarea in tareasAtrasadas)
             {
-                // Calcular cuántos días atrás está
-                var diasAtraso = (hoy - tarea.Fecha.Value.Date).Days;
-                tarea.Nombre = $"{tarea.Nombre} (atrasado {diasAtraso} días)";
-                tarea.Fecha = hoy;
-                tarea.Completada = false;
+                // No tocamos Nombre ni Fecha â€” la fecha original ya indica cuÃ¡ntos dÃ­as lleva atrasada
+                // Solo nos aseguramos de que siga apareciendo en la lista de hoy
+                // (GetTareasHoyAsync ya las incluye porque Fecha < hoy && !Completada)
                 await _tareaRepository.UpdateTareaAsync(tarea);
             }
 
-
-            // 3. Borrar tareas específicas completadas de días anteriores
+            // 3. Borrar tareas especÃ­ficas completadas de dÃ­as anteriores
             var tareasCompletadasViejas = await _tareaRepository.GetTareasEspecificasCompletadasAntesDeAsync(hoy);
             foreach (var tarea in tareasCompletadasViejas)
             {
                 await _tareaRepository.DeleteTareaAsync(tarea.Id);
             }
 
-            // 4. Guardar fecha de última limpieza
+            // 4. Resetear tareas semanales completadas cuyo dÃ­a vuelve a tocar hoy
+            var diaHoy = hoy.DayOfWeek;
+
+            // Primero, resetear las que ESTÃN completadas
+            var tareasSemanalesCompletadas = await _tareaRepository.GetTareasSemanalesCompletadasAsync(hoy);
+            foreach (var tarea in tareasSemanalesCompletadas)
+            {
+                tarea.Completada = false;
+                tarea.Fecha = hoy;
+                await _tareaRepository.UpdateTareaAsync(tarea);
+            }
+
+            // Luego, dejar las incompletas tal cual (solo aparecen atrasadas)
+            var tareasSemanalesIncompletas = await _tareaRepository.GetTareasSemanalesAtrasadasAsync(hoy);
+            foreach (var tarea in tareasSemanalesIncompletas)
+            {
+                // No tocamos Fecha ni Completada â€” la fecha original indica los dÃ­as atrasada
+                // Solo nos aseguramos de que siga en la BD
+                await _tareaRepository.UpdateTareaAsync(tarea);
+            }
+
+            // 5. Guardar fecha de Ãºltima limpieza
             await _settingRepository.SaveSettingAsync("LastCleanupDate", hoy.ToString("yyyy-MM-dd"));
         }
     }

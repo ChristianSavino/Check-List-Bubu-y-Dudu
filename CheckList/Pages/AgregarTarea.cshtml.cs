@@ -11,19 +11,22 @@ namespace CheckList.Pages
         private readonly ILogger<AgregarTareaModel> _logger;
 
         [BindProperty]
-        public string Nombre { get; set; }
+        public string Nombre { get; set; } = "";
 
         [BindProperty]
-        public string Tipo { get; set; } = "daily";
+        public string Tipo { get; set; } = TareaConstants.TIPO_DAILY;
 
         [BindProperty]
-        public string Fecha { get; set; }
+        public string Fecha { get; set; } = "";
 
         [BindProperty]
-        public string Hora { get; set; }
+        public string Hora { get; set; } = "";
 
         [BindProperty]
         public string Persona { get; set; } = "";
+
+        [BindProperty]
+        public string DiaSemana { get; set; } = "";
 
         public int? TareaId { get; set; }
         public bool IsEditing { get; set; }
@@ -48,11 +51,13 @@ namespace CheckList.Pages
                     var tarea = await _tareaService.GetTareaByIdAsync(id.Value);
                     if (tarea != null)
                     {
-                        Nombre = tarea.Nombre;
-                        Tipo = tarea.Tipo;
-                        Fecha = tarea.Fecha?.ToString("yyyy-MM-dd") ?? "";
-                        Hora = tarea.Hora ?? "";
-                        Persona = tarea.Persona ?? "";
+                        var viewModel = TareaMapper.MapToFormViewModel(tarea);
+                        Nombre = viewModel.Nombre;
+                        Tipo = viewModel.Tipo;
+                        Fecha = viewModel.Fecha;
+                        Hora = viewModel.Hora;
+                        Persona = viewModel.Persona;
+                        DiaSemana = viewModel.DiaSemana;
                     }
                 }
             }
@@ -66,61 +71,34 @@ namespace CheckList.Pages
         {
             try
             {
-                // Asegurar que Persona siempre tiene un valor válido
-                if (Persona == null)
-                {
-                    Persona = "";
-                }
+                // Limpiar campos segÃºn tipo de tarea
+                LimpiarCamposPorTipo();
 
-                // CRÍTICO: Limpiar hora/fecha para tareas diarias
-                if (Tipo == "daily")
+                // Validar con la clase centralizada
+                var errores = TareaValidator.ValidateFormInput(Nombre, Tipo, Fecha, DiaSemana);
+                if (errores.Any())
                 {
-                    Hora = "";
-                    Fecha = "";
-                    ModelState.Remove("Hora");
-                    ModelState.Remove("Fecha");
-                }
-
-                // VALIDACIÓN MANUAL - No depender de ModelState
-                if (string.IsNullOrWhiteSpace(Nombre))
-                {
-                    ModelState.AddModelError("Nombre", "El nombre de la tarea es obligatorio");
-                    return Page();
-                }
-
-                // Validar que tarea específica tiene fecha
-                if (Tipo == "specific" && string.IsNullOrWhiteSpace(Fecha))
-                {
-                    ModelState.AddModelError("Fecha", "La fecha es obligatoria para tareas específicas");
+                    foreach (var error in errores)
+                    {
+                        ModelState.AddModelError(error.Field, error.Message);
+                    }
                     return Page();
                 }
 
                 if (id.HasValue)
                 {
-                    // Actualizar
+                    // Actualizar tarea existente
                     var tarea = await _tareaService.GetTareaByIdAsync(id.Value);
                     if (tarea != null)
                     {
-                        tarea.Nombre = Nombre;
-                        tarea.Tipo = Tipo;
-                        tarea.Fecha = !string.IsNullOrWhiteSpace(Fecha) ? DateTime.Parse(Fecha) : null;
-                        tarea.Hora = Hora ?? "";
-                        tarea.Persona = Persona ?? "";
+                        TareaMapper.UpdateEntityFromForm(tarea, Nombre, Tipo, Fecha, Hora, Persona, DiaSemana);
                         await _tareaService.ActualizarTareaAsync(tarea);
                     }
                 }
                 else
                 {
-                    // Crear nueva
-                    var tarea = new TareaEntity
-                    {
-                        Nombre = Nombre,
-                        Tipo = Tipo,
-                        Fecha = !string.IsNullOrWhiteSpace(Fecha) ? DateTime.Parse(Fecha) : null,
-                        Hora = Hora ?? "",
-                        Persona = Persona ?? "",
-                        Completada = false
-                    };
+                    // Crear nueva tarea
+                    var tarea = TareaMapper.MapFromFormToEntity(Nombre, Tipo, Fecha, Hora, Persona, DiaSemana);
                     await _tareaService.CrearTareaAsync(tarea);
                 }
 
@@ -131,6 +109,38 @@ namespace CheckList.Pages
                 _logger.LogError(ex, "Error al guardar tarea");
                 ModelState.AddModelError("", "Error al guardar la tarea");
                 return Page();
+            }
+        }
+
+        /// <summary>
+        /// Limpia campos que no corresponden al tipo de tarea seleccionado
+        /// </summary>
+        private void LimpiarCamposPorTipo()
+        {
+            var tipoTarea = TareaStringConverter.StringToTipoTarea(Tipo);
+
+            switch (tipoTarea)
+            {
+                case TipoTarea.Daily:
+                    Hora = "";
+                    Fecha = "";
+                    DiaSemana = "";
+                    ModelState.Remove("Hora");
+                    ModelState.Remove("Fecha");
+                    ModelState.Remove("DiaSemana");
+                    break;
+
+                case TipoTarea.Weekly:
+                    Hora = "";
+                    Fecha = "";
+                    ModelState.Remove("Hora");
+                    ModelState.Remove("Fecha");
+                    break;
+
+                case TipoTarea.Specific:
+                    DiaSemana = "";
+                    ModelState.Remove("DiaSemana");
+                    break;
             }
         }
     }
