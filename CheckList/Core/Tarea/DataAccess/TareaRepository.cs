@@ -46,11 +46,20 @@ namespace CheckList.Core.Tarea.DataAccess
         public async Task<List<TareaEntity>> GetTareasHoyAsync(DateTime fecha)
         {
             var fechaHoy = fecha.Date;
+
             return await _context.Tareas
                 .Where(t => t.Tipo == TipoTarea.Specific
                          && t.Fecha.HasValue
-                         && t.Fecha.Value.Date == fechaHoy)
-                .OrderBy(t => t.Orden)
+                         && (
+                                t.Fecha.Value.Date == fechaHoy
+                                ||
+                                (
+                                    t.Fecha.Value.Date < fechaHoy
+                                    && !t.Completada
+                                )
+                            ))
+                .OrderBy(t => t.Fecha)
+                .ThenBy(t => t.Orden)
                 .ToListAsync();
         }
 
@@ -123,12 +132,13 @@ namespace CheckList.Core.Tarea.DataAccess
         // (necesarias para resetear el ciclo cuando el día vuelve a tocar)
         public async Task<List<TareaEntity>> GetTareasSemanalesCompletadasAsync(DateTime hoy)
         {
-            var fechaHoy = hoy.Date;
+            var diaHoy = hoy.DayOfWeek;
+
             return await _context.Tareas
                 .Where(t => t.Tipo == TipoTarea.Weekly
-                         && t.Fecha.HasValue
-                         && t.Fecha.Value.Date < fechaHoy
-                         && t.Completada)
+                         && t.Completada
+                         && t.DiaSemana.HasValue
+                         && t.DiaSemana.Value == diaHoy)
                 .OrderBy(t => t.Orden)
                 .ToListAsync();
         }

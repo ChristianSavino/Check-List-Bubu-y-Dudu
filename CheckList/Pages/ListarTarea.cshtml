@@ -1,5 +1,4 @@
 @page
-@using Microsoft.AspNetCore.Components
 @model ListarTareaModel
 @{
     ViewData["Title"] = "Listar Tareas";
@@ -16,7 +15,7 @@
                 @{
                     var diarias = Model.Tareas.Where(t => t.Tipo == "Daily").OrderBy(t => t.Orden).ToList();
                     var semanales = Model.Tareas.Where(t => t.Tipo == "Weekly").OrderBy(t => t.Orden).ToList();
-                    var especificas = Model.Tareas.Where(t => t.Tipo == "Specific").OrderBy(t => t.Orden).ToList();
+                    var especificas = Model.Tareas.Where(t => t.Tipo == "Specific").ToList();
                 }
 
                 @* DIARIAS *@
@@ -30,45 +29,7 @@
                         <div class="tareas-list" data-type="daily">
                             @foreach (var tarea in diarias)
                             {
-                                <div class="tarea-item" draggable="true" data-id="@tarea.Id">
-                                    <div class="drag-handle">
-                                        <svg width="18" height="18" viewBox="0 0 18 18" fill="none"><circle cx="4" cy="4" r="1.5" fill="currentColor" /><circle cx="4" cy="9" r="1.5" fill="currentColor" /><circle cx="4" cy="14" r="1.5" fill="currentColor" /><circle cx="9" cy="4" r="1.5" fill="currentColor" /><circle cx="9" cy="9" r="1.5" fill="currentColor" /><circle cx="9" cy="14" r="1.5" fill="currentColor" /></svg>
-                                    </div>
-                                    <div class="tarea-content">
-                                        <div class="tarea-header">
-                                            <div class="tarea-nombre">@tarea.Nombre</div>
-                                            <div class="tarea-tipo">@tarea.TipoLabel</div>
-                                        </div>
-                                        <div class="tarea-details">
-                                            @if (!string.IsNullOrEmpty(tarea.Hora))
-                                            {
-                                                <span class="tarea-hora">
-                                                    <svg width="10" height="10" viewBox="0 0 10 10" fill="none"><circle cx="5" cy="5" r="4" stroke="currentColor" stroke-width="0.8" /><path d="M5 3v2l1.5 1.5" stroke="currentColor" stroke-width="0.8" stroke-linecap="round" /></svg>
-                                                    @tarea.Hora
-                                                </span>
-                                            }
-                                            @if (!string.IsNullOrEmpty(tarea.Persona))
-                                            {
-                                                <span class="tarea-persona">
-                                                    <svg width="10" height="10" viewBox="0 0 10 10" fill="none"><circle cx="3" cy="2.5" r="1.5" stroke="currentColor" stroke-width="0.8" /><path d="M0.5 9.5c0-1.3 1.3-2.5 2.5-2.5s2.5 1.2 2.5 2.5" stroke="currentColor" stroke-width="0.8" stroke-linecap="round" /></svg>
-                                                    @tarea.Persona
-                                                </span>
-                                            }
-                                        </div>
-                                    </div>
-                                    <div class="tarea-actions">
-                                        <a asp-page="/AgregarTarea" asp-route-id="@tarea.Id" class="btn-action btn-edit">
-                                            <svg width="14" height="14" viewBox="0 0 14 14" fill="none"><path d="M2 10l1.5-1.5 6.5-6.5 1.5 1.5-6.5 6.5L2 10z" stroke="currentColor" stroke-width="1" stroke-linecap="round" stroke-linejoin="round" /><path d="M8.5 2.5l2.5 2.5" stroke="currentColor" stroke-width="1" stroke-linecap="round" /></svg>
-                                            Modificar
-                                        </a>
-                                        <form method="post" asp-page-handler="Delete" asp-route-id="@tarea.Id" style="display: inline;">
-                                            <button type="submit" class="btn-action btn-delete" onclick="return confirm('¿Estás seguro de que deseas eliminar esta tarea?');">
-                                                <svg width="14" height="14" viewBox="0 0 14 14" fill="none"><path d="M1 3h12M4 3v8c0 0.6 0.4 1 1 1h4c0.6 0 1-0.4 1-1V3M6 5v5M8 5v5" stroke="currentColor" stroke-width="1" stroke-linecap="round" stroke-linejoin="round" /></svg>
-                                                Eliminar
-                                            </button>
-                                        </form>
-                                    </div>
-                                </div>
+                                @await Html.PartialAsync("_TareaItem", tarea, new ViewDataDictionary(ViewData) { { "showDay", false } })
                             }
                         </div>
                     </div>
@@ -85,52 +46,7 @@
                         <div class="tareas-list" data-type="weekly">
                             @foreach (var tarea in semanales)
                             {
-                                <div class="tarea-item" draggable="true" data-id="@tarea.Id">
-                                    <div class="drag-handle">
-                                        <svg width="18" height="18" viewBox="0 0 18 18" fill="none"><circle cx="4" cy="4" r="1.5" fill="currentColor" /><circle cx="4" cy="9" r="1.5" fill="currentColor" /><circle cx="4" cy="14" r="1.5" fill="currentColor" /><circle cx="9" cy="4" r="1.5" fill="currentColor" /><circle cx="9" cy="9" r="1.5" fill="currentColor" /><circle cx="9" cy="14" r="1.5" fill="currentColor" /></svg>
-                                    </div>
-                                    <div class="tarea-content">
-                                        <div class="tarea-header">
-                                            <div class="tarea-nombre">@tarea.Nombre</div>
-                                            <div class="tarea-tipo">@tarea.TipoLabel</div>
-                                        </div>
-                                        <div class="tarea-details">
-                                            @if (!string.IsNullOrEmpty(tarea.DiaSemana))
-                                            {
-                                                <span class="tarea-diasemana">
-                                                    <svg width="10" height="10" viewBox="0 0 10 10" fill="none"><circle cx="5" cy="5" r="4" stroke="currentColor" stroke-width="0.8" /><path d="M5 2.5v3L7 6.5" stroke="currentColor" stroke-width="0.8" stroke-linecap="round" /></svg>
-                                                    @tarea.DiaSemana
-                                                </span>
-                                            }
-                                            @if (!string.IsNullOrEmpty(tarea.Hora))
-                                            {
-                                                <span class="tarea-hora">
-                                                    <svg width="10" height="10" viewBox="0 0 10 10" fill="none"><circle cx="5" cy="5" r="4" stroke="currentColor" stroke-width="0.8" /><path d="M5 3v2l1.5 1.5" stroke="currentColor" stroke-width="0.8" stroke-linecap="round" /></svg>
-                                                    @tarea.Hora
-                                                </span>
-                                            }
-                                            @if (!string.IsNullOrEmpty(tarea.Persona))
-                                            {
-                                                <span class="tarea-persona">
-                                                    <svg width="10" height="10" viewBox="0 0 10 10" fill="none"><circle cx="3" cy="2.5" r="1.5" stroke="currentColor" stroke-width="0.8" /><path d="M0.5 9.5c0-1.3 1.3-2.5 2.5-2.5s2.5 1.2 2.5 2.5" stroke="currentColor" stroke-width="0.8" stroke-linecap="round" /></svg>
-                                                    @tarea.Persona
-                                                </span>
-                                            }
-                                        </div>
-                                    </div>
-                                    <div class="tarea-actions">
-                                        <a asp-page="/AgregarTarea" asp-route-id="@tarea.Id" class="btn-action btn-edit">
-                                            <svg width="14" height="14" viewBox="0 0 14 14" fill="none"><path d="M2 10l1.5-1.5 6.5-6.5 1.5 1.5-6.5 6.5L2 10z" stroke="currentColor" stroke-width="1" stroke-linecap="round" stroke-linejoin="round" /><path d="M8.5 2.5l2.5 2.5" stroke="currentColor" stroke-width="1" stroke-linecap="round" /></svg>
-                                            Modificar
-                                        </a>
-                                        <form method="post" asp-page-handler="Delete" asp-route-id="@tarea.Id" style="display: inline;">
-                                            <button type="submit" class="btn-action btn-delete" onclick="return confirm('¿Estás seguro de que deseas eliminar esta tarea?');">
-                                                <svg width="14" height="14" viewBox="0 0 14 14" fill="none"><path d="M1 3h12M4 3v8c0 0.6 0.4 1 1 1h4c0.6 0 1-0.4 1-1V3M6 5v5M8 5v5" stroke="currentColor" stroke-width="1" stroke-linecap="round" stroke-linejoin="round" /></svg>
-                                                Eliminar
-                                            </button>
-                                        </form>
-                                    </div>
-                                </div>
+                                @await Html.PartialAsync("_TareaItem", tarea, new ViewDataDictionary(ViewData) { { "showDay", true } })
                             }
                         </div>
                     </div>
@@ -147,52 +63,7 @@
                         <div class="tareas-list" data-type="specific">
                             @foreach (var tarea in especificas)
                             {
-                                <div class="tarea-item" draggable="true" data-id="@tarea.Id">
-                                    <div class="drag-handle">
-                                        <svg width="18" height="18" viewBox="0 0 18 18" fill="none"><circle cx="4" cy="4" r="1.5" fill="currentColor" /><circle cx="4" cy="9" r="1.5" fill="currentColor" /><circle cx="4" cy="14" r="1.5" fill="currentColor" /><circle cx="9" cy="4" r="1.5" fill="currentColor" /><circle cx="9" cy="9" r="1.5" fill="currentColor" /><circle cx="9" cy="14" r="1.5" fill="currentColor" /></svg>
-                                    </div>
-                                    <div class="tarea-content">
-                                        <div class="tarea-header">
-                                            <div class="tarea-nombre">@tarea.Nombre</div>
-                                            <div class="tarea-tipo">@tarea.TipoLabel</div>
-                                        </div>
-                                        <div class="tarea-details">
-                                            @if (!string.IsNullOrEmpty(tarea.Fecha))
-                                            {
-                                                <span class="tarea-fecha">
-                                                    <svg width="10" height="10" viewBox="0 0 10 10" fill="none"><rect x="0.5" y="1.5" width="9" height="8" rx="1" stroke="currentColor" stroke-width="0.8" /><path d="M3 0.5v2M7 0.5v2M0.5 4h9" stroke="currentColor" stroke-width="0.8" stroke-linecap="round" /></svg>
-                                                    @DateTime.Parse(tarea.Fecha).ToString("dd/MM/yyyy")
-                                                </span>
-                                            }
-                                            @if (!string.IsNullOrEmpty(tarea.Hora))
-                                            {
-                                                <span class="tarea-hora">
-                                                    <svg width="10" height="10" viewBox="0 0 10 10" fill="none"><circle cx="5" cy="5" r="4" stroke="currentColor" stroke-width="0.8" /><path d="M5 3v2l1.5 1.5" stroke="currentColor" stroke-width="0.8" stroke-linecap="round" /></svg>
-                                                    @tarea.Hora
-                                                </span>
-                                            }
-                                            @if (!string.IsNullOrEmpty(tarea.Persona))
-                                            {
-                                                <span class="tarea-persona">
-                                                    <svg width="10" height="10" viewBox="0 0 10 10" fill="none"><circle cx="3" cy="2.5" r="1.5" stroke="currentColor" stroke-width="0.8" /><path d="M0.5 9.5c0-1.3 1.3-2.5 2.5-2.5s2.5 1.2 2.5 2.5" stroke="currentColor" stroke-width="0.8" stroke-linecap="round" /></svg>
-                                                    @tarea.Persona
-                                                </span>
-                                            }
-                                        </div>
-                                    </div>
-                                    <div class="tarea-actions">
-                                        <a asp-page="/AgregarTarea" asp-route-id="@tarea.Id" class="btn-action btn-edit">
-                                            <svg width="14" height="14" viewBox="0 0 14 14" fill="none"><path d="M2 10l1.5-1.5 6.5-6.5 1.5 1.5-6.5 6.5L2 10z" stroke="currentColor" stroke-width="1" stroke-linecap="round" stroke-linejoin="round" /><path d="M8.5 2.5l2.5 2.5" stroke="currentColor" stroke-width="1" stroke-linecap="round" /></svg>
-                                            Modificar
-                                        </a>
-                                        <form method="post" asp-page-handler="Delete" asp-route-id="@tarea.Id" style="display: inline;">
-                                            <button type="submit" class="btn-action btn-delete" onclick="return confirm('¿Estás seguro de que deseas eliminar esta tarea?');">
-                                                <svg width="14" height="14" viewBox="0 0 14 14" fill="none"><path d="M1 3h12M4 3v8c0 0.6 0.4 1 1 1h4c0.6 0 1-0.4 1-1V3M6 5v5M8 5v5" stroke="currentColor" stroke-width="1" stroke-linecap="round" stroke-linejoin="round" /></svg>
-                                                Eliminar
-                                            </button>
-                                        </form>
-                                    </div>
-                                </div>
+                                @await Html.PartialAsync("_TareaItem", tarea, new ViewDataDictionary(ViewData) { { "showDay", false } })
                             }
                         </div>
                     </div>
@@ -210,73 +81,22 @@
     </div>
 </div>
 
-@* Componente para renderizar una tarea *@
-@{
-    RenderFragment<(TareaListDto tarea, bool showDay)> RenderTaskItem = (item) =>
-    @<div class="tarea-item" draggable="true" data-id="@item.tarea.Id">
-        <div class="drag-handle">
-            <svg width="18" height="18" viewBox="0 0 18 18" fill="none"><circle cx="4" cy="4" r="1.5" fill="currentColor" /><circle cx="4" cy="9" r="1.5" fill="currentColor" /><circle cx="4" cy="14" r="1.5" fill="currentColor" /><circle cx="9" cy="4" r="1.5" fill="currentColor" /><circle cx="9" cy="9" r="1.5" fill="currentColor" /><circle cx="9" cy="14" r="1.5" fill="currentColor" /></svg>
-        </div>
-        <div class="tarea-content">
-            <div class="tarea-header">
-                <div class="tarea-nombre">@item.tarea.Nombre</div>
-                <div class="tarea-tipo">@item.tarea.TipoLabel</div>
-            </div>
-            <div class="tarea-details">
-                @if (!string.IsNullOrEmpty(item.tarea.Fecha))
-                {
-                    <span class="tarea-fecha">
-                        <svg width="10" height="10" viewBox="0 0 10 10" fill="none"><rect x="0.5" y="1.5" width="9" height="8" rx="1" stroke="currentColor" stroke-width="0.8" /><path d="M3 0.5v2M7 0.5v2M0.5 4h9" stroke="currentColor" stroke-width="0.8" stroke-linecap="round" /></svg>
-                        @DateTime.Parse(item.tarea.Fecha).ToString("dd/MM/yyyy")
-                    </span>
-                }
-                @if (!string.IsNullOrEmpty(item.tarea.Hora))
-                {
-                    <span class="tarea-hora">
-                        <svg width="10" height="10" viewBox="0 0 10 10" fill="none"><circle cx="5" cy="5" r="4" stroke="currentColor" stroke-width="0.8" /><path d="M5 3v2l1.5 1.5" stroke="currentColor" stroke-width="0.8" stroke-linecap="round" /></svg>
-                        @item.tarea.Hora
-                    </span>
-                }
-                @if (item.showDay && !string.IsNullOrEmpty(item.tarea.DiaSemana))
-                {
-                    <span class="tarea-diasemana">
-                        <svg width="10" height="10" viewBox="0 0 10 10" fill="none"><circle cx="5" cy="5" r="4" stroke="currentColor" stroke-width="0.8" /><path d="M5 2.5v3L7 6.5" stroke="currentColor" stroke-width="0.8" stroke-linecap="round" /></svg>
-                        @item.tarea.DiaSemana
-                    </span>
-                }
-                @if (!string.IsNullOrEmpty(item.tarea.Persona))
-                {
-                    <span class="tarea-persona">
-                        <svg width="10" height="10" viewBox="0 0 10 10" fill="none"><circle cx="3" cy="2.5" r="1.5" stroke="currentColor" stroke-width="0.8" /><path d="M0.5 9.5c0-1.3 1.3-2.5 2.5-2.5s2.5 1.2 2.5 2.5" stroke="currentColor" stroke-width="0.8" stroke-linecap="round" /></svg>
-                        @item.tarea.Persona
-                    </span>
-                }
-            </div>
-        </div>
-        <div class="tarea-actions">
-            <a asp-page="/AgregarTarea" asp-route-id="@item.tarea.Id" class="btn-action btn-edit">
-                <svg width="14" height="14" viewBox="0 0 14 14" fill="none"><path d="M2 10l1.5-1.5 6.5-6.5 1.5 1.5-6.5 6.5L2 10z" stroke="currentColor" stroke-width="1" stroke-linecap="round" stroke-linejoin="round" /><path d="M8.5 2.5l2.5 2.5" stroke="currentColor" stroke-width="1" stroke-linecap="round" /></svg>
-                Modificar
-            </a>
-            <form method="post" asp-page-handler="Delete" asp-route-id="@item.tarea.Id" style="display: inline;">
-                <button type="submit" class="btn-action btn-delete" onclick="return confirm('¿Estás seguro de que deseas eliminar esta tarea?');">
-                    <svg width="14" height="14" viewBox="0 0 14 14" fill="none"><path d="M1 3h12M4 3v8c0 0.6 0.4 1 1 1h4c0.6 0 1-0.4 1-1V3M6 5v5M8 5v5" stroke="currentColor" stroke-width="1" stroke-linecap="round" stroke-linejoin="round" /></svg>
-                    Eliminar
-                </button>
-            </form>
-        </div>
-    </div>;
-}
-
 <script>
-    // ─── Drag & Drop ──────────────────────────────────────────────────────────
     let draggedItem = null;
     let draggedFromList = null;
 
     document.addEventListener('dragstart', (e) => {
         if (e.target.classList.contains('tarea-item')) {
+
+            const list = e.target.closest('.tareas-list');
+
+            if (list?.dataset.type === 'specific') {
+                e.preventDefault();
+                return;
+            }
+
             draggedItem = e.target;
-            draggedFromList = e.target.closest('.tareas-list');
+            draggedFromList = list;
             e.target.style.opacity = '0.5';
         }
     });
@@ -315,7 +135,6 @@
         }, { offset: Number.NEGATIVE_INFINITY }).element;
     }
 
-    // ─── Guardar orden al soltar ──────────────────────────────────────────────
     document.addEventListener('drop', async (e) => {
         e.preventDefault();
         if (draggedFromList) {
@@ -328,15 +147,10 @@
         try {
             const response = await fetch('/api/tareas/reorder', {
                 method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                },
+                headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify(ids)
             });
-
-            if (!response.ok) {
-                console.error('Error al guardar orden');
-            }
+            if (!response.ok) console.error('Error al guardar orden');
         } catch (error) {
             console.error('Error:', error);
         }
@@ -378,17 +192,17 @@
         cursor: grab;
     }
 
-    .tarea-item:active {
-        cursor: grabbing;
-    }
+        .tarea-item:active {
+            cursor: grabbing;
+        }
 
-    .tarea-item:last-child {
-        border-bottom: none;
-    }
+        .tarea-item:last-child {
+            border-bottom: none;
+        }
 
-    .tarea-item:hover {
-        background: rgba(26, 58, 92, 0.03);
-    }
+        .tarea-item:hover {
+            background: rgba(26, 58, 92, 0.03);
+        }
 
     .drag-handle {
         display: flex;
@@ -399,6 +213,14 @@
         color: var(--color-text-tertiary);
         cursor: grab;
         flex-shrink: 0;
+    }
+
+    .tareas-list[data-type="specific"] .drag-handle {
+        display: none;
+    }
+
+    .tareas-list[data-type="specific"] .tarea-item {
+        cursor: default;
     }
 
     .drag-handle:active {
@@ -436,14 +258,11 @@
         display: flex;
         gap: 12px;
         font-size: 11px;
-        color: var(--color-text-terciary);
+        color: var(--color-text-tertiary);
         flex-wrap: wrap;
     }
 
-    .tarea-fecha,
-    .tarea-hora,
-    .tarea-diasemana,
-    .tarea-persona {
+    .tarea-fecha, .tarea-hora, .tarea-diasemana, .tarea-persona {
         display: flex;
         align-items: center;
         gap: 4px;
@@ -475,16 +294,16 @@
         border-color: #1a3a5c;
     }
 
-    .btn-edit:hover {
-        background: rgba(26, 58, 92, 0.1);
-    }
+        .btn-edit:hover {
+            background: rgba(26, 58, 92, 0.1);
+        }
 
     .btn-delete {
         color: #dc3545;
         border-color: #dc3545;
     }
 
-    .btn-delete:hover {
-        background: rgba(220, 53, 69, 0.1);
-    }
+        .btn-delete:hover {
+            background: rgba(220, 53, 69, 0.1);
+        }
 </style>

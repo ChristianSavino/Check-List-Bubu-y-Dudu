@@ -23,7 +23,8 @@ namespace CheckList.Pages
             try
             {
                 var tareas = await _tareaService.GetTodasLasTareasAsync();
-                Tareas = tareas.Select(t => new TareaListDto
+                Tareas = tareas
+                .Select(t => new TareaListDto
                 {
                     Id = t.Id,
                     Nombre = t.Nombre,
@@ -32,9 +33,21 @@ namespace CheckList.Pages
                     Fecha = t.Fecha?.ToString(TareaConstants.DATE_FORMAT),
                     Hora = t.Hora ?? "",
                     Persona = t.Persona ?? "",
-                    DiaSemana = t.DiaSemana.HasValue ? TareaStringConverter.GetDayOfWeekLabel(t.DiaSemana.Value) : "",
+                    DiaSemana = t.DiaSemana.HasValue
+                        ? TareaStringConverter.GetDayOfWeekLabel(t.DiaSemana.Value)
+                        : "",
                     Orden = t.Orden
-                }).ToList();
+                })
+                .OrderBy(t => t.Tipo == "Specific" ? 1 : 0)
+                .ThenBy(t =>
+                    t.Tipo == "Specific" && !string.IsNullOrEmpty(t.Fecha)
+                        ? DateTime.Parse(t.Fecha)
+                        : DateTime.MinValue)
+                .ThenBy(t =>
+                    t.Tipo == "Specific"
+                        ? t.Hora
+                        : "")
+                .ToList();
             }
             catch (Exception ex)
             {
