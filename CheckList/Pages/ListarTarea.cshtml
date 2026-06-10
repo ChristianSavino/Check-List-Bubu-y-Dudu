@@ -5,71 +5,32 @@
 }
 
 <div class="wrapper">
-    <div class="main" style="grid-template-columns: 1fr; max-width: 700px; margin: 0 auto;">
+    <div class="main listar-main">
+
+        @{
+            var diarias = Model.Tareas.Where(t => t.Tipo == "Daily").OrderBy(t => t.Orden).ToList();
+            var semanales = Model.Tareas.Where(t => t.Tipo == "Weekly").OrderBy(t => t.Orden).ToList();
+            var especificas = Model.Tareas.Where(t => t.Tipo == "Specific").ToList();
+        }
+
+        @* DIARIAS *@
         <div>
             <div class="col-header">
-                <svg width="13" height="13" viewBox="0 0 13 13" fill="none"><rect x="0.5" y="1.5" width="12" height="10" rx="1.5" stroke="currentColor" stroke-width="1.1" /><path d="M4 0.5v2M9 0.5v2M0.5 5.5h12" stroke="currentColor" stroke-width="1.1" stroke-linecap="round" /></svg>
-                Todas las Tareas
+                <svg width="13" height="13" viewBox="0 0 13 13" fill="none"><circle cx="6.5" cy="6.5" r="5.5" stroke="currentColor" stroke-width="1.1" /><path d="M6.5 4v2.5l1.5 1.5" stroke="currentColor" stroke-width="1.1" stroke-linecap="round" /></svg>
+                Diarias
+                <span class="badge">@diarias.Count</span>
             </div>
-            <div class="card">
-                @{
-                    var diarias = Model.Tareas.Where(t => t.Tipo == "Daily").OrderBy(t => t.Orden).ToList();
-                    var semanales = Model.Tareas.Where(t => t.Tipo == "Weekly").OrderBy(t => t.Orden).ToList();
-                    var especificas = Model.Tareas.Where(t => t.Tipo == "Specific").ToList();
-                }
-
-                @* DIARIAS *@
+            <div class="card listar-card">
                 @if (diarias.Any())
                 {
-                    <div class="section-group">
-                        <div class="section-title">
-                            <svg width="13" height="13" viewBox="0 0 13 13" fill="none"><circle cx="6.5" cy="6.5" r="5.5" stroke="currentColor" stroke-width="1.1" /><path d="M6.5 4v2.5l1.5 1.5" stroke="currentColor" stroke-width="1.1" stroke-linecap="round" /></svg>
-                            Diarias
-                        </div>
-                        <div class="tareas-list" data-type="daily">
-                            @foreach (var tarea in diarias)
-                            {
-                                @await Html.PartialAsync("_TareaItem", tarea, new ViewDataDictionary(ViewData) { { "showDay", false } })
-                            }
-                        </div>
+                    <div class="tareas-list" data-type="daily">
+                        @foreach (var tarea in diarias)
+                        {
+                            @await Html.PartialAsync("_TareaItem", tarea, new ViewDataDictionary(ViewData) { { "showDay", false } })
+                        }
                     </div>
                 }
-
-                @* SEMANALES *@
-                @if (semanales.Any())
-                {
-                    <div class="section-group">
-                        <div class="section-title">
-                            <svg width="13" height="13" viewBox="0 0 13 13" fill="none"><rect x="1.5" y="1.5" width="10" height="10" rx="1" stroke="currentColor" stroke-width="1.1" /><path d="M1 4.5h11M4 1v11M9 1v11" stroke="currentColor" stroke-width="0.8" stroke-linecap="round" /></svg>
-                            Semanales
-                        </div>
-                        <div class="tareas-list" data-type="weekly">
-                            @foreach (var tarea in semanales)
-                            {
-                                @await Html.PartialAsync("_TareaItem", tarea, new ViewDataDictionary(ViewData) { { "showDay", true } })
-                            }
-                        </div>
-                    </div>
-                }
-
-                @* ESPECÍFICAS *@
-                @if (especificas.Any())
-                {
-                    <div class="section-group">
-                        <div class="section-title">
-                            <svg width="13" height="13" viewBox="0 0 13 13" fill="none"><rect x="0.5" y="1.5" width="12" height="10" rx="1.5" stroke="currentColor" stroke-width="1.1" /><path d="M4 0.5v2M9 0.5v2M0.5 5.5h12" stroke="currentColor" stroke-width="1.1" stroke-linecap="round" /></svg>
-                            Específicas
-                        </div>
-                        <div class="tareas-list" data-type="specific">
-                            @foreach (var tarea in especificas)
-                            {
-                                @await Html.PartialAsync("_TareaItem", tarea, new ViewDataDictionary(ViewData) { { "showDay", false } })
-                            }
-                        </div>
-                    </div>
-                }
-
-                @if (!Model.Tareas.Any())
+                else
                 {
                     <div class="empty-state">
                         <svg width="26" height="26" viewBox="0 0 26 26" fill="none"><rect x="1" y="1" width="24" height="24" rx="5" stroke="var(--color-border-secondary)" stroke-width="1" stroke-dasharray="4 3" /><path d="M8 13h10M13 8v10" stroke="var(--color-border-secondary)" stroke-width="1.1" stroke-linecap="round" /></svg>
@@ -78,6 +39,61 @@
                 }
             </div>
         </div>
+
+        @* SEMANALES *@
+        <div>
+            <div class="col-header">
+                <svg width="13" height="13" viewBox="0 0 13 13" fill="none"><rect x="1.5" y="1.5" width="10" height="10" rx="1" stroke="currentColor" stroke-width="1.1" /><path d="M1 4.5h11M4 1v11M9 1v11" stroke="currentColor" stroke-width="0.8" stroke-linecap="round" /></svg>
+                Semanales
+                <span class="badge">@semanales.Count</span>
+            </div>
+            <div class="card listar-card">
+                @if (semanales.Any())
+                {
+                    <div class="tareas-list" data-type="weekly">
+                        @foreach (var tarea in semanales)
+                        {
+                            @await Html.PartialAsync("_TareaItem", tarea, new ViewDataDictionary(ViewData) { { "showDay", true } })
+                        }
+                    </div>
+                }
+                else
+                {
+                    <div class="empty-state">
+                        <svg width="26" height="26" viewBox="0 0 26 26" fill="none"><rect x="1" y="1" width="24" height="24" rx="5" stroke="var(--color-border-secondary)" stroke-width="1" stroke-dasharray="4 3" /><path d="M8 13h10M13 8v10" stroke="var(--color-border-secondary)" stroke-width="1.1" stroke-linecap="round" /></svg>
+                        Sin tareas
+                    </div>
+                }
+            </div>
+        </div>
+
+        @* ESPECÍFICAS *@
+        <div>
+            <div class="col-header">
+                <svg width="13" height="13" viewBox="0 0 13 13" fill="none"><rect x="0.5" y="1.5" width="12" height="10" rx="1.5" stroke="currentColor" stroke-width="1.1" /><path d="M4 0.5v2M9 0.5v2M0.5 5.5h12" stroke="currentColor" stroke-width="1.1" stroke-linecap="round" /></svg>
+                Específicas
+                <span class="badge">@especificas.Count</span>
+            </div>
+            <div class="card listar-card">
+                @if (especificas.Any())
+                {
+                    <div class="tareas-list" data-type="specific">
+                        @foreach (var tarea in especificas)
+                        {
+                            @await Html.PartialAsync("_TareaItem", tarea, new ViewDataDictionary(ViewData) { { "showDay", false } })
+                        }
+                    </div>
+                }
+                else
+                {
+                    <div class="empty-state">
+                        <svg width="26" height="26" viewBox="0 0 26 26" fill="none"><rect x="1" y="1" width="24" height="24" rx="5" stroke="var(--color-border-secondary)" stroke-width="1" stroke-dasharray="4 3" /><path d="M8 13h10M13 8v10" stroke="var(--color-border-secondary)" stroke-width="1.1" stroke-linecap="round" /></svg>
+                        Sin tareas
+                    </div>
+                }
+            </div>
+        </div>
+
     </div>
 </div>
 
@@ -87,14 +103,8 @@
 
     document.addEventListener('dragstart', (e) => {
         if (e.target.classList.contains('tarea-item')) {
-
             const list = e.target.closest('.tareas-list');
-
-            if (list?.dataset.type === 'specific') {
-                e.preventDefault();
-                return;
-            }
-
+            if (list?.dataset.type === 'specific') { e.preventDefault(); return; }
             draggedItem = e.target;
             draggedFromList = list;
             e.target.style.opacity = '0.5';
@@ -114,196 +124,87 @@
         const list = e.target.closest('.tareas-list');
         if (list && draggedItem && draggedFromList && list === draggedFromList) {
             const afterElement = getDragAfterElement(list, e.clientY);
-            if (afterElement == null) {
-                list.appendChild(draggedItem);
-            } else {
-                list.insertBefore(draggedItem, afterElement);
-            }
+            if (afterElement == null) list.appendChild(draggedItem);
+            else list.insertBefore(draggedItem, afterElement);
         }
     });
 
     function getDragAfterElement(container, y) {
-        const draggableElements = [...container.querySelectorAll('.tarea-item:not([style*="opacity"])')];
-        return draggableElements.reduce((closest, child) => {
+        const items = [...container.querySelectorAll('.tarea-item:not([style*="opacity"])')];
+        return items.reduce((closest, child) => {
             const box = child.getBoundingClientRect();
             const offset = y - box.top - box.height / 2;
-            if (offset < 0 && offset > closest.offset) {
-                return { offset: offset, element: child };
-            } else {
-                return closest;
-            }
+            return (offset < 0 && offset > closest.offset) ? { offset, element: child } : closest;
         }, { offset: Number.NEGATIVE_INFINITY }).element;
     }
 
     document.addEventListener('drop', async (e) => {
         e.preventDefault();
         if (draggedFromList) {
-            const ids = [...draggedFromList.querySelectorAll('.tarea-item')].map(item => parseInt(item.dataset.id));
-            await saveOrder(ids);
+            const ids = [...draggedFromList.querySelectorAll('.tarea-item')].map(el => parseInt(el.dataset.id));
+            try {
+                await fetch('/api/tareas/reorder', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(ids) });
+            } catch (err) { console.error('Error:', err); }
         }
     });
-
-    async function saveOrder(ids) {
-        try {
-            const response = await fetch('/api/tareas/reorder', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify(ids)
-            });
-            if (!response.ok) console.error('Error al guardar orden');
-        } catch (error) {
-            console.error('Error:', error);
-        }
-    }
 </script>
 
 <style>
-    .section-group {
-        margin-bottom: 2rem;
+    .listar-main {
+        grid-template-columns: 1fr 1fr 1fr;
+        max-width: none;
+        margin: 0;
     }
 
-    .section-title {
-        display: flex;
-        align-items: center;
-        gap: 8px;
-        font-size: 14px;
-        font-weight: 600;
-        color: var(--color-text-primary);
-        margin-bottom: 0.75rem;
-        padding-bottom: 0.75rem;
-        border-bottom: 1px solid var(--color-border-secondary);
+    .listar-card {
+        min-height: 200px;
     }
 
-    .tareas-list {
-        display: flex;
-        flex-direction: column;
-        gap: 0;
-        min-height: 40px;
-    }
+    .tareas-list { display: flex; flex-direction: column; gap: 0; min-height: 40px; }
 
     .tarea-item {
-        display: flex;
-        align-items: center;
-        justify-content: space-between;
-        padding: 12px 0;
-        border-bottom: 0.5px solid var(--color-border-tertiary);
-        gap: 1rem;
-        transition: background 0.15s;
-        cursor: grab;
+        display: flex; align-items: center; justify-content: space-between;
+        padding: 10px 0; border-bottom: 0.5px solid var(--color-border-tertiary);
+        gap: 0.75rem; transition: background 0.15s; cursor: grab;
     }
+    .tarea-item:active { cursor: grabbing; }
+    .tarea-item:last-child { border-bottom: none; }
+    .tarea-item:hover { background: rgba(26, 58, 92, 0.03); }
 
-        .tarea-item:active {
-            cursor: grabbing;
-        }
-
-        .tarea-item:last-child {
-            border-bottom: none;
-        }
-
-        .tarea-item:hover {
-            background: rgba(26, 58, 92, 0.03);
-        }
+    .tareas-list[data-type="specific"] .drag-handle { display: none; }
+    .tareas-list[data-type="specific"] .tarea-item { cursor: default; }
 
     .drag-handle {
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        width: 20px;
-        height: 20px;
-        color: var(--color-text-tertiary);
-        cursor: grab;
-        flex-shrink: 0;
+        display: flex; align-items: center; justify-content: center;
+        width: 18px; height: 18px; color: var(--color-text-tertiary);
+        cursor: grab; flex-shrink: 0;
     }
+    .drag-handle:active { cursor: grabbing; }
 
-    .tareas-list[data-type="specific"] .drag-handle {
-        display: none;
-    }
-
-    .tareas-list[data-type="specific"] .tarea-item {
-        cursor: default;
-    }
-
-    .drag-handle:active {
-        cursor: grabbing;
-    }
-
-    .tarea-content {
-        flex: 1;
-        min-width: 0;
-    }
-
-    .tarea-header {
-        display: flex;
-        align-items: center;
-        gap: 12px;
-        margin-bottom: 6px;
-    }
-
-    .tarea-nombre {
-        font-size: 14px;
-        font-weight: 500;
-        color: var(--color-text-primary);
-    }
-
+    .tarea-content { flex: 1; min-width: 0; }
+    .tarea-header { display: flex; align-items: center; gap: 8px; margin-bottom: 4px; }
+    .tarea-nombre { font-size: 13px; font-weight: 500; color: var(--color-text-primary); }
     .tarea-tipo {
-        font-size: 11px;
-        background: var(--color-background-secondary);
-        color: var(--color-text-secondary);
-        padding: 2px 8px;
-        border-radius: 99px;
-        white-space: nowrap;
+        font-size: 10px; background: var(--color-background-secondary);
+        color: var(--color-text-secondary); padding: 1px 6px;
+        border-radius: 99px; white-space: nowrap;
     }
+    .tarea-details { display: flex; gap: 8px; font-size: 10px; color: var(--color-text-tertiary); flex-wrap: wrap; }
+    .tarea-fecha, .tarea-hora, .tarea-diasemana, .tarea-persona { display: flex; align-items: center; gap: 3px; }
 
-    .tarea-details {
-        display: flex;
-        gap: 12px;
-        font-size: 11px;
-        color: var(--color-text-tertiary);
-        flex-wrap: wrap;
-    }
-
-    .tarea-fecha, .tarea-hora, .tarea-diasemana, .tarea-persona {
-        display: flex;
-        align-items: center;
-        gap: 4px;
-    }
-
-    .tarea-actions {
-        display: flex;
-        gap: 8px;
-        flex-shrink: 0;
-    }
-
+    .tarea-actions { display: flex; gap: 6px; flex-shrink: 0; }
     .btn-action {
-        display: inline-flex;
-        align-items: center;
-        gap: 4px;
-        padding: 6px 12px;
-        font-size: 12px;
-        border-radius: var(--border-radius-md);
-        cursor: pointer;
-        text-decoration: none;
-        transition: all 0.15s;
-        border: 0.5px solid;
-        background: transparent;
-        font-family: var(--font-sans);
+        display: inline-flex; align-items: center; gap: 3px;
+        padding: 4px 8px; font-size: 11px; border-radius: var(--border-radius-md);
+        cursor: pointer; text-decoration: none; transition: all 0.15s;
+        border: 0.5px solid; background: transparent; font-family: var(--font-sans);
     }
+    .btn-edit { color: #1a3a5c; border-color: #1a3a5c; }
+    .btn-edit:hover { background: rgba(26, 58, 92, 0.1); }
+    .btn-delete { color: #dc3545; border-color: #dc3545; }
+    .btn-delete:hover { background: rgba(220, 53, 69, 0.1); }
 
-    .btn-edit {
-        color: #1a3a5c;
-        border-color: #1a3a5c;
+    @@media (max-width: 900px) {
+        .listar-main { grid-template-columns: 1fr; }
     }
-
-        .btn-edit:hover {
-            background: rgba(26, 58, 92, 0.1);
-        }
-
-    .btn-delete {
-        color: #dc3545;
-        border-color: #dc3545;
-    }
-
-        .btn-delete:hover {
-            background: rgba(220, 53, 69, 0.1);
-        }
 </style>

@@ -1,0 +1,472 @@
+@page
+@model CalendarioTareaModel
+@{
+    ViewData["Title"] = "Calendario";
+    var hoy = DateTime.Now.Date;
+    var meses = new[] { "", "Enero", "Febrero", "Marzo", "Abril", "Mayo", "Junio", "Julio", "Agosto", "Septiembre", "Octubre", "Noviembre", "Diciembre" };
+    var diasSemana = new[] { "Lu", "Ma", "Mi", "Ju", "Vi", "Sá", "Do" };
+    var esPrimerAño = Model.Año <= Model.AñoActual;
+}
+
+<div class="wrapper">
+    <div class="main" style="grid-template-columns: 1fr; max-width: none; margin: 0;">
+
+        @* HEADER CON NAVEGACIÓN DE AÑO *@
+        <div class="cal-header">
+            @if (!esPrimerAño)
+            {
+                <a asp-page="/CalendarioTarea" asp-route-año="@(Model.Año - 1)" class="cal-nav">
+                    <svg width="16" height="16" viewBox="0 0 16 16" fill="none"><path d="M10 4l-4 4 4 4" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" /></svg>
+                </a>
+            }
+            else
+            {
+                <span class="cal-nav disabled"></span>
+            }
+            <span class="cal-year">@Model.Año</span>
+            <a asp-page="/CalendarioTarea" asp-route-año="@(Model.Año + 1)" class="cal-nav">
+                <svg width="16" height="16" viewBox="0 0 16 16" fill="none"><path d="M6 4l4 4-4 4" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" /></svg>
+            </a>
+        </div>
+
+        @* GRILLA DE MESES (desde MesInicio) *@
+        <div class="cal-grid">
+            @for (int mes = Model.MesInicio; mes <= 12; mes++)
+            {
+                var primerDia = new DateTime(Model.Año, mes, 1);
+                var diasEnMes = DateTime.DaysInMonth(Model.Año, mes);
+                var offsetInicio = ((int)primerDia.DayOfWeek + 6) % 7;
+
+                <div class="cal-month">
+                    <div class="cal-month-name">@meses[mes]</div>
+                    <div class="cal-weekdays">
+                        @foreach (var d in diasSemana)
+                        {
+                            <span>@d</span>
+                        }
+                    </div>
+                    <div class="cal-days">
+                        @for (int i = 0; i < offsetInicio; i++)
+                        {
+                            <span class="cal-day empty"></span>
+                        }
+                        @for (int dia = 1; dia <= diasEnMes; dia++)
+                        {
+                            var fecha = new DateTime(Model.Año, mes, dia);
+                            var key = fecha.ToString("yyyy-MM-dd");
+                            var tieneEventos = Model.EventosPorDia.ContainsKey(key);
+                            var esHoy = fecha == hoy;
+                            var esPasado = fecha < hoy;
+
+                            var clases = "cal-day";
+                            if (esHoy) clases += " today";
+                            if (esPasado) clases += " past";
+                            if (tieneEventos) clases += " has-events";
+
+                            <span class="@clases" data-date="@key">
+                                @dia
+                                @if (tieneEventos)
+                                {
+                                    var cantEventos = Model.EventosPorDia[key].Count;
+                                    <span class="cal-dot @(cantEventos > 1 ? "multi" : "")"></span>
+                                    <div class="cal-tooltip">
+                                        <div class="cal-tooltip-date">@fecha.ToString("dddd dd/MM", new System.Globalization.CultureInfo("es-AR"))</div>
+                                        @foreach (var ev in Model.EventosPorDia[key])
+                                        {
+                                            <div class="cal-tooltip-event @(ev.Completada ? "done" : "")">
+                                                <span class="cal-tooltip-check">@(ev.Completada ? "✓" : "○")</span>
+                                                <div class="cal-tooltip-info">
+                                                    <span class="cal-tooltip-name">@ev.Nombre</span>
+                                                    <div class="cal-tooltip-meta">
+                                                        @if (!string.IsNullOrEmpty(ev.Hora))
+                                                        {
+                                                            <span>🕐 @ev.Hora</span>
+                                                        }
+                                                        @if (!string.IsNullOrEmpty(ev.Persona))
+                                                        {
+                                                            <span>👤 @ev.Persona</span>
+                                                        }
+                                                        @if (!ev.Completada)
+                                                        {
+                                                            if (ev.DiasRestantes == 0)
+                                                            {
+                                                                <span class="cal-tooltip-countdown hoy">¡Hoy!</span>
+                                                            }
+                                                            else if (ev.DiasRestantes == 1)
+                                                            {
+                                                                <span class="cal-tooltip-countdown">Mañana</span>
+                                                            }
+                                                            else if (ev.DiasRestantes > 1)
+                                                            {
+                                                                <span class="cal-tooltip-countdown">Faltan @ev.DiasRestantes días</span>
+                                                            }
+                                                            else
+                                                            {
+                                                                <span class="cal-tooltip-countdown atrasada">@Math.Abs(ev.DiasRestantes) @(Math.Abs(ev.DiasRestantes) == 1 ? "día" : "días") atrasada</span>
+                                                            }
+                                                        }
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        }
+                                    </div>
+                                }
+                            </span>
+                        }
+                    </div>
+                </div>
+            }
+        </div>
+
+    </div>
+</div>
+
+@* JS: posicionar tooltip con fixed para que no se corte *@
+<script>
+    document.addEventListener('DOMContentLoaded', () => {
+        let activeDay = null;
+
+        function positionTooltip(day) {
+            const tooltip = day.querySelector('.cal-tooltip');
+            if (!tooltip) return;
+
+            // Reset para medir bien
+            tooltip.style.left = '';
+            tooltip.style.top = '';
+            tooltip.style.bottom = '';
+
+            const rect = day.getBoundingClientRect();
+            const ttRect = tooltip.getBoundingClientRect();
+            const gap = 8;
+
+            // Intentar arriba primero
+            let top = rect.top - ttRect.height - gap;
+            let arrowClass = 'arrow-bottom'; // flecha apunta abajo
+
+            // Si no entra arriba, mostrar abajo
+            if (top < 8) {
+                top = rect.bottom + gap;
+                arrowClass = 'arrow-top'; // flecha apunta arriba
+            }
+
+            // Centrar horizontalmente respecto al día
+            let left = rect.left + rect.width / 2 - ttRect.width / 2;
+
+            // No salirse de la pantalla
+            const margin = 8;
+            if (left < margin) left = margin;
+            if (left + ttRect.width > window.innerWidth - margin) {
+                left = window.innerWidth - margin - ttRect.width;
+            }
+
+            tooltip.style.left = left + 'px';
+            tooltip.style.top = top + 'px';
+            tooltip.className = 'cal-tooltip visible ' + arrowClass;
+        }
+
+        function closeAll() {
+            if (activeDay) {
+                const tt = activeDay.querySelector('.cal-tooltip');
+                if (tt) tt.classList.remove('visible', 'arrow-top', 'arrow-bottom');
+                activeDay = null;
+            }
+        }
+
+        // Click/tap para abrir (funciona en mobile y desktop)
+        document.querySelectorAll('.cal-day.has-events').forEach(day => {
+            day.addEventListener('click', (e) => {
+                e.stopPropagation();
+                if (activeDay === day) {
+                    closeAll();
+                    return;
+                }
+                closeAll();
+                activeDay = day;
+                const tt = day.querySelector('.cal-tooltip');
+                if (tt) {
+                    tt.classList.add('visible');
+                    positionTooltip(day);
+                }
+            });
+
+            // Desktop: hover también abre
+            day.addEventListener('mouseenter', () => {
+                if ('ontouchstart' in window) return; // skip en mobile
+                closeAll();
+                activeDay = day;
+                const tt = day.querySelector('.cal-tooltip');
+                if (tt) {
+                    tt.classList.add('visible');
+                    positionTooltip(day);
+                }
+            });
+
+            day.addEventListener('mouseleave', () => {
+                if ('ontouchstart' in window) return;
+                closeAll();
+            });
+        });
+
+        // Cerrar al hacer click fuera
+        document.addEventListener('click', closeAll);
+
+        // Reposicionar si se hace scroll
+        window.addEventListener('scroll', () => {
+            if (activeDay) positionTooltip(activeDay);
+        }, { passive: true });
+    });
+</script>
+
+<style>
+    .cal-header {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 1.5rem;
+        margin-bottom: 1rem;
+    }
+
+    .cal-year {
+        font-size: 20px;
+        font-weight: 600;
+        color: var(--color-text-primary);
+        min-width: 60px;
+        text-align: center;
+    }
+
+    .cal-nav {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        width: 32px;
+        height: 32px;
+        border-radius: var(--border-radius-md);
+        color: var(--color-text-secondary);
+        text-decoration: none;
+        transition: background 0.15s;
+    }
+
+    .cal-nav:hover:not(.disabled) {
+        background: var(--color-background-primary);
+        color: var(--color-text-primary);
+    }
+
+    .cal-nav.disabled {
+        opacity: 0;
+        pointer-events: none;
+    }
+
+    /* ─── Grilla de meses ───────────────────────────────────────────── */
+    .cal-grid {
+        display: grid;
+        grid-template-columns: repeat(4, 1fr);
+        gap: 1rem;
+    }
+
+    .cal-month {
+        background: var(--color-background-primary);
+        border: 0.5px solid var(--color-border-tertiary);
+        border-radius: var(--border-radius-lg);
+        padding: 0.75rem;
+    }
+
+    .cal-month-name {
+        font-size: 13px;
+        font-weight: 600;
+        color: var(--color-text-primary);
+        text-align: center;
+        margin-bottom: 0.5rem;
+        text-transform: capitalize;
+    }
+
+    .cal-weekdays {
+        display: grid;
+        grid-template-columns: repeat(7, 1fr);
+        text-align: center;
+        font-size: 10px;
+        color: var(--color-text-tertiary);
+        margin-bottom: 4px;
+        font-weight: 500;
+    }
+
+    .cal-days {
+        display: grid;
+        grid-template-columns: repeat(7, 1fr);
+        gap: 1px;
+    }
+
+    .cal-day {
+        position: relative;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        height: 28px;
+        font-size: 11px;
+        color: var(--color-text-primary);
+        border-radius: 4px;
+        cursor: default;
+    }
+
+    .cal-day.empty { visibility: hidden; }
+    .cal-day.past { color: var(--color-text-tertiary); }
+
+    .cal-day.today {
+        background: #1a3a5c;
+        color: #fff;
+        font-weight: 600;
+    }
+
+    .cal-day.has-events {
+        cursor: pointer;
+        font-weight: 600;
+    }
+
+    .cal-day.has-events:not(.today) {
+        background: rgba(26, 58, 92, 0.08);
+    }
+
+    /* ─── Dot indicador ─────────────────────────────────────────────── */
+    .cal-dot {
+        position: absolute;
+        bottom: 2px;
+        left: 50%;
+        transform: translateX(-50%);
+        width: 4px;
+        height: 4px;
+        border-radius: 50%;
+        background: #e07b39;
+    }
+
+    .cal-dot.multi {
+        width: 8px;
+        border-radius: 2px;
+    }
+
+    .cal-day.today .cal-dot { background: #fff; }
+
+    /* ─── Tooltip (dark theme, fixed position via JS) ─────────────── */
+    .cal-tooltip {
+        display: none;
+        position: fixed;
+        z-index: 1000;
+        background: #1e2a38;
+        border: 1px solid #2d3d4f;
+        border-radius: 10px;
+        padding: 12px 14px;
+        min-width: 220px;
+        max-width: 280px;
+        box-shadow: 0 8px 24px rgba(0, 0, 0, 0.35);
+        pointer-events: none;
+    }
+
+    .cal-tooltip.visible { display: block; }
+
+    /* Flecha abajo (tooltip está ARRIBA del día) */
+    .cal-tooltip.arrow-bottom::after {
+        content: '';
+        position: absolute;
+        top: 100%;
+        left: 50%;
+        transform: translateX(-50%);
+        border: 6px solid transparent;
+        border-top-color: #1e2a38;
+    }
+
+    /* Flecha arriba (tooltip está ABAJO del día) */
+    .cal-tooltip.arrow-top::after {
+        content: '';
+        position: absolute;
+        bottom: 100%;
+        left: 50%;
+        transform: translateX(-50%);
+        border: 6px solid transparent;
+        border-bottom-color: #1e2a38;
+    }
+
+    .cal-tooltip-date {
+        font-size: 12px;
+        font-weight: 600;
+        color: #8fa8c8;
+        margin-bottom: 8px;
+        padding-bottom: 6px;
+        border-bottom: 1px solid #2d3d4f;
+        text-transform: capitalize;
+    }
+
+    .cal-tooltip-event {
+        display: flex;
+        align-items: flex-start;
+        gap: 8px;
+        padding: 6px 0;
+        border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+    }
+
+    .cal-tooltip-event:last-child { border-bottom: none; }
+
+    .cal-tooltip-check {
+        flex-shrink: 0;
+        font-size: 13px;
+        width: 16px;
+        color: #6b8aad;
+        margin-top: 1px;
+    }
+
+    .cal-tooltip-event.done .cal-tooltip-check { color: #4caf7a; }
+
+    .cal-tooltip-info { flex: 1; min-width: 0; }
+
+    .cal-tooltip-name {
+        font-size: 13px;
+        font-weight: 500;
+        color: #e8eef5;
+        line-height: 1.3;
+    }
+
+    .cal-tooltip-event.done .cal-tooltip-name {
+        color: #6b8aad;
+        text-decoration: line-through;
+    }
+
+    .cal-tooltip-meta {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 8px;
+        margin-top: 3px;
+        font-size: 11px;
+        color: #8fa8c8;
+    }
+
+    .cal-tooltip-countdown {
+        color: #5bb8ff;
+        font-weight: 500;
+    }
+
+    .cal-tooltip-countdown.hoy {
+        color: #4caf7a;
+    }
+
+    .cal-tooltip-countdown.atrasada {
+        color: #e07b39;
+    }
+
+    /* ─── Responsive ────────────────────────────────────────────────── */
+    @@media (max-width: 900px) {
+        .cal-grid { grid-template-columns: repeat(3, 1fr); }
+    }
+
+    @@media (max-width: 640px) {
+        .cal-grid { grid-template-columns: repeat(2, 1fr); gap: 0.5rem; }
+        .cal-month { padding: 0.5rem; }
+        .cal-day { height: 26px; font-size: 10px; }
+
+        .cal-tooltip {
+            min-width: 260px;
+            max-width: 90vw;
+            padding: 16px;
+        }
+
+        .cal-tooltip-name { font-size: 14px; }
+        .cal-tooltip-meta { font-size: 12px; }
+        .cal-tooltip-date { font-size: 13px; }
+    }
+</style>
