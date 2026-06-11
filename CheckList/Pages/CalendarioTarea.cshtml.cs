@@ -7,16 +7,19 @@ namespace CheckList.Pages
     public class CalendarioTareaModel : PageModel
     {
         private readonly ITareaService _tareaService;
+        private readonly IFeriadoService _feriadoService;
         private readonly ILogger<CalendarioTareaModel> _logger;
 
         public int Año { get; set; }
         public int MesInicio { get; set; }
         public int AñoActual { get; set; }
         public Dictionary<string, List<EventoCalendario>> EventosPorDia { get; set; } = new();
+        public Dictionary<string, string> FeriadosPorDia { get; set; } = new();
 
-        public CalendarioTareaModel(ITareaService tareaService, ILogger<CalendarioTareaModel> logger)
+        public CalendarioTareaModel(ITareaService tareaService, IFeriadoService feriadoService, ILogger<CalendarioTareaModel> logger)
         {
             _tareaService = tareaService;
+            _feriadoService = feriadoService;
             _logger = logger;
         }
 
@@ -26,14 +29,12 @@ namespace CheckList.Pages
             {
                 AñoActual = DateTime.Now.Year;
                 Año = año.HasValue && año.Value >= AñoActual ? año.Value : AñoActual;
-
-                // Si es el año actual, empezar desde el mes actual
                 MesInicio = Año == AñoActual ? DateTime.Now.Month : 1;
 
                 var hoy = DateTime.Now.Date;
-                var todasLasTareas = await _tareaService.GetTodasLasTareasAsync();
 
-                // Solo tareas específicas con fecha desde hoy en adelante (o del año seleccionado)
+                // Cargar tareas específicas
+                var todasLasTareas = await _tareaService.GetTodasLasTareasAsync();
                 var tareasDelAño = todasLasTareas
                     .Where(t => t.Tipo == TipoTarea.Specific
                              && t.Fecha.HasValue
@@ -47,17 +48,19 @@ namespace CheckList.Pages
                     if (!EventosPorDia.ContainsKey(key))
                         EventosPorDia[key] = new List<EventoCalendario>();
 
-                    var diasFaltan = (tarea.Fecha.Value.Date - hoy).Days;
-
                     EventosPorDia[key].Add(new EventoCalendario
                     {
                         Nombre = tarea.Nombre,
                         Hora = tarea.Hora ?? "",
                         Persona = tarea.Persona ?? "",
                         Completada = tarea.Completada,
-                        DiasRestantes = diasFaltan
+                        DiasRestantes = (tarea.Fecha.Value.Date - hoy).Days
                     });
                 }
+
+                // Feriados: si el año no está en memoria, cargarlo (ej: navegaron a año futuro)
+                await _feriadoService.CargarFeriadosAsync(Año);
+                FeriadosPorDia = _feriadoService.GetFeriados(Año);
             }
             catch (Exception ex)
             {

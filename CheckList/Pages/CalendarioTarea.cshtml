@@ -55,13 +55,16 @@
                             var fecha = new DateTime(Model.Año, mes, dia);
                             var key = fecha.ToString("yyyy-MM-dd");
                             var tieneEventos = Model.EventosPorDia.ContainsKey(key);
+                            var esFeriado = Model.FeriadosPorDia.ContainsKey(key);
+                            var tieneTooltip = tieneEventos || esFeriado;
                             var esHoy = fecha == hoy;
                             var esPasado = fecha < hoy;
 
                             var clases = "cal-day";
                             if (esHoy) clases += " today";
                             if (esPasado) clases += " past";
-                            if (tieneEventos) clases += " has-events";
+                            if (esFeriado) clases += " feriado";
+                            if (tieneTooltip) clases += " has-events";
 
                             <span class="@clases" data-date="@key">
                                 @dia
@@ -69,45 +72,60 @@
                                 {
                                     var cantEventos = Model.EventosPorDia[key].Count;
                                     <span class="cal-dot @(cantEventos > 1 ? "multi" : "")"></span>
+                                }
+                                @if (tieneTooltip)
+                                {
                                     <div class="cal-tooltip">
                                         <div class="cal-tooltip-date">@fecha.ToString("dddd dd/MM", new System.Globalization.CultureInfo("es-AR"))</div>
-                                        @foreach (var ev in Model.EventosPorDia[key])
+
+                                        @if (esFeriado)
                                         {
-                                            <div class="cal-tooltip-event @(ev.Completada ? "done" : "")">
-                                                <span class="cal-tooltip-check">@(ev.Completada ? "✓" : "○")</span>
-                                                <div class="cal-tooltip-info">
-                                                    <span class="cal-tooltip-name">@ev.Nombre</span>
-                                                    <div class="cal-tooltip-meta">
-                                                        @if (!string.IsNullOrEmpty(ev.Hora))
-                                                        {
-                                                            <span>🕐 @ev.Hora</span>
-                                                        }
-                                                        @if (!string.IsNullOrEmpty(ev.Persona))
-                                                        {
-                                                            <span>👤 @ev.Persona</span>
-                                                        }
-                                                        @if (!ev.Completada)
-                                                        {
-                                                            if (ev.DiasRestantes == 0)
+                                            <div class="cal-tooltip-feriado">
+                                                <span>🇦🇷</span>
+                                                <span>@Model.FeriadosPorDia[key]</span>
+                                            </div>
+                                        }
+
+                                        @if (tieneEventos)
+                                        {
+                                            @foreach (var ev in Model.EventosPorDia[key])
+                                            {
+                                                <div class="cal-tooltip-event @(ev.Completada ? "done" : "")">
+                                                    <span class="cal-tooltip-check">@(ev.Completada ? "✓" : "○")</span>
+                                                    <div class="cal-tooltip-info">
+                                                        <span class="cal-tooltip-name">@ev.Nombre</span>
+                                                        <div class="cal-tooltip-meta">
+                                                            @if (!string.IsNullOrEmpty(ev.Hora))
                                                             {
-                                                                <span class="cal-tooltip-countdown hoy">¡Hoy!</span>
+                                                                <span>🕐 @ev.Hora</span>
                                                             }
-                                                            else if (ev.DiasRestantes == 1)
+                                                            @if (!string.IsNullOrEmpty(ev.Persona))
                                                             {
-                                                                <span class="cal-tooltip-countdown">Mañana</span>
+                                                                <span>👤 @ev.Persona</span>
                                                             }
-                                                            else if (ev.DiasRestantes > 1)
+                                                            @if (!ev.Completada)
                                                             {
-                                                                <span class="cal-tooltip-countdown">Faltan @ev.DiasRestantes días</span>
+                                                                if (ev.DiasRestantes == 0)
+                                                                {
+                                                                    <span class="cal-tooltip-countdown hoy">¡Hoy!</span>
+                                                                }
+                                                                else if (ev.DiasRestantes == 1)
+                                                                {
+                                                                    <span class="cal-tooltip-countdown">Mañana</span>
+                                                                }
+                                                                else if (ev.DiasRestantes > 1)
+                                                                {
+                                                                    <span class="cal-tooltip-countdown">Faltan @ev.DiasRestantes días</span>
+                                                                }
+                                                                else
+                                                                {
+                                                                    <span class="cal-tooltip-countdown atrasada">@Math.Abs(ev.DiasRestantes) @(Math.Abs(ev.DiasRestantes) == 1 ? "día" : "días") atrasada</span>
+                                                                }
                                                             }
-                                                            else
-                                                            {
-                                                                <span class="cal-tooltip-countdown atrasada">@Math.Abs(ev.DiasRestantes) @(Math.Abs(ev.DiasRestantes) == 1 ? "día" : "días") atrasada</span>
-                                                            }
-                                                        }
+                                                        </div>
                                                     </div>
                                                 </div>
-                                            </div>
+                                            }
                                         }
                                     </div>
                                 }
@@ -325,6 +343,20 @@
         background: rgba(26, 58, 92, 0.08);
     }
 
+    /* ─── Feriado styling ───────────────────────────────────────────── */
+    .cal-day.feriado:not(.today) {
+        background: rgba(220, 53, 69, 0.1);
+        color: #c0392b;
+    }
+
+    .cal-day.feriado.past:not(.today) {
+        color: rgba(192, 57, 43, 0.5);
+    }
+
+    .cal-day.feriado.has-events:not(.today) {
+        background: rgba(220, 53, 69, 0.12);
+    }
+
     /* ─── Dot indicador ─────────────────────────────────────────────── */
     .cal-dot {
         position: absolute;
@@ -391,6 +423,17 @@
         padding-bottom: 6px;
         border-bottom: 1px solid #2d3d4f;
         text-transform: capitalize;
+    }
+
+    .cal-tooltip-feriado {
+        display: flex;
+        align-items: center;
+        gap: 6px;
+        padding: 6px 0;
+        font-size: 12px;
+        font-weight: 500;
+        color: #f0a0a0;
+        border-bottom: 1px solid rgba(255, 255, 255, 0.06);
     }
 
     .cal-tooltip-event {

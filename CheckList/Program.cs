@@ -30,6 +30,10 @@ builder.Services.AddScoped<IAppSettingRepository, AppSettingRepository>();
 builder.Services.AddScoped<ITareaService, TareaService>();
 builder.Services.AddScoped<ITareaCleanupService, TareaCleanupService>();
 
+builder.Services.AddSingleton<FeriadoService>();
+builder.Services.AddSingleton<IFeriadoService>(sp => sp.GetRequiredService<FeriadoService>());
+builder.Services.AddHttpClient<FeriadoService>();
+
 // SignalR
 builder.Services.AddSignalR();
 
@@ -78,6 +82,10 @@ using (var scope = app.Services.CreateScope())
 
     var cleanupService = scope.ServiceProvider.GetRequiredService<ITareaCleanupService>();
     await cleanupService.CleanupAsync();
+
+    var feriadoService = app.Services.GetRequiredService<IFeriadoService>();
+    await feriadoService.CargarFeriadosAsync(DateTime.Now.Year);
+    await feriadoService.CargarFeriadosAsync(DateTime.Now.Year + 1);
 }
 
 if (!app.Environment.IsDevelopment())
