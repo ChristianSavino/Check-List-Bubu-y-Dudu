@@ -19,6 +19,8 @@ namespace CheckList.Core.Tarea.DataAccess
         Task<List<TareaEntity>> GetTareasSemanalesAtrasadasAsync(DateTime hoy);
         Task<List<TareaEntity>> GetTareasSemanalesCompletadasAsync(DateTime hoy);
         Task<List<TareaEntity>> GetTareasEspecificasCompletadasAntesDeAsync(DateTime fecha);
+        Task<List<TareaEntity>> GetEventosActivosEnFechaAsync(DateTime fecha);
+        Task<List<TareaEntity>> GetEventosPasadosAsync(DateTime hoy);
     }
 
     public class TareaRepository : ITareaRepository
@@ -181,6 +183,27 @@ namespace CheckList.Core.Tarea.DataAccess
                          && t.Completada
                          && t.Fecha.HasValue
                          && t.Fecha.Value.Date < fechaHoy)
+                .ToListAsync();
+        }
+
+        public async Task<List<TareaEntity>> GetEventosActivosEnFechaAsync(DateTime fecha)
+        {
+            var fechaDia = fecha.Date;
+            return await _context.Tareas
+                .Where(t => t.Tipo == TipoTarea.Event
+                         && t.Fecha.HasValue && t.FechaFin.HasValue
+                         && t.Fecha.Value.Date <= fechaDia
+                         && t.FechaFin.Value.Date >= fechaDia)
+                .OrderBy(t => t.Fecha)
+                .ToListAsync();
+        }
+
+        public async Task<List<TareaEntity>> GetEventosPasadosAsync(DateTime hoy)
+        {
+            return await _context.Tareas
+                .Where(t => t.Tipo == TipoTarea.Event
+                         && t.FechaFin.HasValue
+                         && t.FechaFin.Value.Date < hoy.Date)
                 .ToListAsync();
         }
     }

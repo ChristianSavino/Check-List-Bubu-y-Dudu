@@ -58,6 +58,38 @@ namespace CheckList.Pages
                     });
                 }
 
+                // Eventos con duración
+                var eventosDelAño = todasLasTareas
+                    .Where(t => t.Tipo == TipoTarea.Specific == false
+                             && t.Tipo == TipoTarea.Event
+                             && t.Fecha.HasValue && t.FechaFin.HasValue
+                             && ((t.Fecha.Value.Year == Año) || (t.FechaFin.Value.Year == Año)))
+                    .ToList();
+
+                foreach (var ev in eventosDelAño)
+                {
+                    var inicio = ev.Fecha!.Value.Date;
+                    var fin = ev.FechaFin!.Value.Date;
+                    var totalDias = (fin - inicio).Days + 1;
+
+                    for (var d = inicio; d <= fin; d = d.AddDays(1))
+                    {
+                        if (d.Year != Año || d.Month < MesInicio) continue;
+                        var key = d.ToString("yyyy-MM-dd");
+                        if (!EventosPorDia.ContainsKey(key))
+                            EventosPorDia[key] = new List<EventoCalendario>();
+
+                        var diaNum = (d - inicio).Days + 1;
+                        EventosPorDia[key].Add(new EventoCalendario
+                        {
+                            Nombre = $"{ev.Nombre} ({diaNum}/{totalDias})",
+                            Persona = ev.Persona ?? "",
+                            Completada = false,
+                            DiasRestantes = (d - hoy).Days
+                        });
+                    }
+                }
+
                 // Feriados: si el año no está en memoria, cargarlo (ej: navegaron a año futuro)
                 await _feriadoService.CargarFeriadosAsync(Año);
                 FeriadosPorDia = _feriadoService.GetFeriados(Año);

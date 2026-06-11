@@ -1,11 +1,7 @@
 namespace CheckList.Core.Tarea.Domain
 {
-    /// <summary>
-    /// Centraliza todas las conversiones entre strings (UI) y enums
-    /// </summary>
     public static class TareaStringConverter
     {
-        // Conversiones TipoTarea <-> String
         public static TipoTarea StringToTipoTarea(string tipo)
         {
             if (string.IsNullOrWhiteSpace(tipo))
@@ -19,7 +15,6 @@ namespace CheckList.Core.Tarea.Domain
             return tipo.ToString().ToLower();
         }
 
-        // Conversiones DayOfWeek <-> String
         public static DayOfWeek? StringToDayOfWeek(string dia)
         {
             if (string.IsNullOrWhiteSpace(dia))
@@ -33,7 +28,6 @@ namespace CheckList.Core.Tarea.Domain
             return dia?.ToString() ?? "";
         }
 
-        // Conversiones PersonaType <-> String
         public static PersonaType StringToPersonaType(string persona)
         {
             if (string.IsNullOrWhiteSpace(persona))
@@ -47,15 +41,15 @@ namespace CheckList.Core.Tarea.Domain
             return persona == PersonaType.None ? "" : persona.ToString();
         }
 
-        // Etiquetas para UI
         public static string GetTipoTareaLabel(TipoTarea tipo)
         {
             return tipo switch
             {
-                TipoTarea.Daily => "Diaria",
+                TipoTarea.Daily    => "Diaria",
                 TipoTarea.Specific => "Específica",
-                TipoTarea.Weekly => "Semanal",
-                _ => "Desconocida"
+                TipoTarea.Weekly   => "Semanal",
+                TipoTarea.Event    => "Evento",
+                _                  => "Desconocida"
             };
         }
 
@@ -63,14 +57,14 @@ namespace CheckList.Core.Tarea.Domain
         {
             return dia switch
             {
-                DayOfWeek.Sunday => "Domingo",
-                DayOfWeek.Monday => "Lunes",
-                DayOfWeek.Tuesday => "Martes",
+                DayOfWeek.Sunday    => "Domingo",
+                DayOfWeek.Monday    => "Lunes",
+                DayOfWeek.Tuesday   => "Martes",
                 DayOfWeek.Wednesday => "Miércoles",
-                DayOfWeek.Thursday => "Jueves",
-                DayOfWeek.Friday => "Viernes",
-                DayOfWeek.Saturday => "Sábado",
-                _ => dia.ToString()
+                DayOfWeek.Thursday  => "Jueves",
+                DayOfWeek.Friday    => "Viernes",
+                DayOfWeek.Saturday  => "Sábado",
+                _                   => dia.ToString()
             };
         }
 
@@ -81,7 +75,7 @@ namespace CheckList.Core.Tarea.Domain
                 PersonaType.Bubu => "Bubu",
                 PersonaType.Dudu => "Dudu",
                 PersonaType.None => "Sin asignar",
-                _ => "Desconocida"
+                _                => "Desconocida"
             };
         }
     }

@@ -30,27 +30,30 @@ namespace CheckList.Pages
             try
             {
                 var hoy = DateTime.Now.Date;
+                var mañana = hoy.AddDays(1);
 
-                // Obtener todas las tareas
-                var tareasDiarias = await _tareaService.GetTareasDiariaAsync();
-                var tareasSemanalesHoy = await _tareaService.GetTareasSemanalesHoyAsync();
+                var tareasDiarias         = await _tareaService.GetTareasDiariaAsync();
+                var tareasSemanalesHoy    = await _tareaService.GetTareasSemanalesHoyAsync();
                 var tareasSemanalesMañana = await _tareaService.GetTareasSemanalesMañanaAsync();
-                var tareasHoy = await _tareaService.GetTareasHoyAsync();
-                var tareasMañana = await _tareaService.GetTareasMañanaAsync();
+                var tareasHoy             = await _tareaService.GetTareasHoyAsync();
+                var tareasMañana          = await _tareaService.GetTareasMañanaAsync();
+                var eventosHoy            = await _tareaService.GetEventosActivosEnFechaAsync(hoy);
+                var eventosMañana         = await _tareaService.GetEventosActivosEnFechaAsync(mañana);
 
-                // Mapear tareas diarias
                 Daily = ConvertirDtos(TareaMapper.MapToList(tareasDiarias, hoy));
 
-                // Combinar tareas de hoy: específicas + semanales del día
+                // Hoy: específicas + semanales + eventos del día
                 var tareasHoyCombinadas = new List<CoreTareaDto>();
                 tareasHoyCombinadas.AddRange(TareaMapper.MapToList(tareasHoy, hoy));
                 tareasHoyCombinadas.AddRange(TareaMapper.MapToList(tareasSemanalesHoy, hoy));
+                tareasHoyCombinadas.AddRange(TareaMapper.MapEventosParaDia(eventosHoy, hoy));
                 Today = ConvertirDtos(tareasHoyCombinadas);
 
-                // Combinar tareas de mañana: específicas + semanales del día
+                // Mañana: específicas + semanales + eventos
                 var tareasMañanaCombinadas = new List<CoreTareaDto>();
                 tareasMañanaCombinadas.AddRange(TareaMapper.MapToList(tareasMañana, hoy));
                 tareasMañanaCombinadas.AddRange(TareaMapper.MapToList(tareasSemanalesMañana, hoy));
+                tareasMañanaCombinadas.AddRange(TareaMapper.MapEventosParaDia(eventosMañana, mañana));
                 Tomorrow = ConvertirDtos(tareasMañanaCombinadas);
             }
             catch (Exception ex)
@@ -59,21 +62,20 @@ namespace CheckList.Pages
             }
         }
 
-        /// <summary>
-        /// Convierte CoreTareaDto a TareaDto para la UI incluyendo el tipo de tarea
-        /// </summary>
         private static List<TareaDto> ConvertirDtos(List<CoreTareaDto> dtos)
         {
             return dtos.Select(d => new TareaDto
             {
                 Id = d.Id,
-                Label = d.Nombre,
+                Label = d.Label, // Para eventos ya incluye "Nombre (3/10)"
                 Done = d.Completada,
                 Time = d.Hora,
                 Persona = d.Persona,
                 DiasAtraso = d.DiasAtraso,
                 TipoTarea = d.TipoTarea,
-                TipoTareaLabel = d.TipoTareaLabel
+                TipoTareaLabel = d.TipoTareaLabel,
+                EsEvento = d.EsEvento,
+                EventoProgreso = d.EventoProgreso
             }).ToList();
         }
 
@@ -81,15 +83,18 @@ namespace CheckList.Pages
         {
             try
             {
-                if (id <= 0)
-                    return BadRequest();
+                if (id <= 0) return BadRequest();
+
+                // No permitir toggle en eventos
+                var tarea = await _tareaService.GetTareaByIdAsync(id);
+                if (tarea == null) return NotFound();
+                if (tarea.Tipo == TipoTarea.Event) return BadRequest();
 
                 await _tareaService.ToggleTareaAsync(id);
 
-                var tarea = await _tareaService.GetTareaByIdAsync(id);
+                tarea = await _tareaService.GetTareaByIdAsync(id);
                 if (tarea != null)
                 {
-                    // Notificar a todos los clientes conectados via SignalR
                     await _hubContext.Clients.Group("checklist").SendAsync("TaskToggled", new
                     {
                         id = tarea.Id,
@@ -107,9 +112,6 @@ namespace CheckList.Pages
         }
     }
 
-    /// <summary>
-    /// DTO para la página Index con propiedades específicas de la UI
-    /// </summary>
     public class TareaDto
     {
         public int Id { get; set; }
@@ -120,5 +122,7 @@ namespace CheckList.Pages
         public int DiasAtraso { get; set; }
         public string TipoTarea { get; set; } = "";
         public string TipoTareaLabel { get; set; } = "";
+        public bool EsEvento { get; set; }
+        public string EventoProgreso { get; set; } = "";
     }
 }

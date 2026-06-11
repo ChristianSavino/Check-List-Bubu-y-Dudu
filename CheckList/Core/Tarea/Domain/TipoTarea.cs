@@ -4,6 +4,7 @@ namespace CheckList.Core.Tarea.Domain
     {
         Daily,
         Specific,
-        Weekly
+        Weekly,
+        Event
     }
 }

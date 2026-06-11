@@ -10,23 +10,13 @@ namespace CheckList.Pages
         private readonly ITareaService _tareaService;
         private readonly ILogger<AgregarTareaModel> _logger;
 
-        [BindProperty]
-        public string Nombre { get; set; } = "";
-
-        [BindProperty]
-        public string Tipo { get; set; } = TareaConstants.TIPO_DAILY;
-
-        [BindProperty]
-        public string Fecha { get; set; } = "";
-
-        [BindProperty]
-        public string Hora { get; set; } = "";
-
-        [BindProperty]
-        public string Persona { get; set; } = "";
-
-        [BindProperty]
-        public string DiaSemana { get; set; } = "";
+        [BindProperty] public string Nombre { get; set; } = "";
+        [BindProperty] public string Tipo { get; set; } = TareaConstants.TIPO_DAILY;
+        [BindProperty] public string Fecha { get; set; } = "";
+        [BindProperty] public string FechaFin { get; set; } = "";
+        [BindProperty] public string Hora { get; set; } = "";
+        [BindProperty] public string Persona { get; set; } = "";
+        [BindProperty] public string DiaSemana { get; set; } = "";
 
         public int? TareaId { get; set; }
         public bool IsEditing { get; set; }
@@ -52,11 +42,12 @@ namespace CheckList.Pages
                     if (tarea != null)
                     {
                         var viewModel = TareaMapper.MapToFormViewModel(tarea);
-                        Nombre = viewModel.Nombre;
-                        Tipo = viewModel.Tipo;
-                        Fecha = viewModel.Fecha;
-                        Hora = viewModel.Hora;
-                        Persona = viewModel.Persona;
+                        Nombre    = viewModel.Nombre;
+                        Tipo      = viewModel.Tipo;
+                        Fecha     = viewModel.Fecha;
+                        FechaFin  = viewModel.FechaFin;
+                        Hora      = viewModel.Hora;
+                        Persona   = viewModel.Persona;
                         DiaSemana = viewModel.DiaSemana;
                     }
                 }
@@ -71,34 +62,28 @@ namespace CheckList.Pages
         {
             try
             {
-                // Limpiar campos según tipo de tarea
                 LimpiarCamposPorTipo();
 
-                // Validar con la clase centralizada
-                var errores = TareaValidator.ValidateFormInput(Nombre, Tipo, Fecha, DiaSemana);
+                var errores = TareaValidator.ValidateFormInput(Nombre, Tipo, Fecha, DiaSemana, FechaFin);
                 if (errores.Any())
                 {
                     foreach (var error in errores)
-                    {
                         ModelState.AddModelError(error.Field, error.Message);
-                    }
                     return Page();
                 }
 
                 if (id.HasValue)
                 {
-                    // Actualizar tarea existente
                     var tarea = await _tareaService.GetTareaByIdAsync(id.Value);
                     if (tarea != null)
                     {
-                        TareaMapper.UpdateEntityFromForm(tarea, Nombre, Tipo, Fecha, Hora, Persona, DiaSemana);
+                        TareaMapper.UpdateEntityFromForm(tarea, Nombre, Tipo, Fecha, Hora, Persona, DiaSemana, FechaFin);
                         await _tareaService.ActualizarTareaAsync(tarea);
                     }
                 }
                 else
                 {
-                    // Crear nueva tarea
-                    var tarea = TareaMapper.MapFromFormToEntity(Nombre, Tipo, Fecha, Hora, Persona, DiaSemana);
+                    var tarea = TareaMapper.MapFromFormToEntity(Nombre, Tipo, Fecha, Hora, Persona, DiaSemana, FechaFin);
                     await _tareaService.CrearTareaAsync(tarea);
                 }
 
@@ -112,9 +97,6 @@ namespace CheckList.Pages
             }
         }
 
-        /// <summary>
-        /// Limpia campos que no corresponden al tipo de tarea seleccionado
-        /// </summary>
         private void LimpiarCamposPorTipo()
         {
             var tipoTarea = TareaStringConverter.StringToTipoTarea(Tipo);
@@ -122,24 +104,25 @@ namespace CheckList.Pages
             switch (tipoTarea)
             {
                 case TipoTarea.Daily:
-                    Hora = "";
-                    Fecha = "";
-                    DiaSemana = "";
-                    ModelState.Remove("Hora");
-                    ModelState.Remove("Fecha");
-                    ModelState.Remove("DiaSemana");
+                    Hora = ""; Fecha = ""; FechaFin = ""; DiaSemana = "";
+                    ModelState.Remove("Hora"); ModelState.Remove("Fecha");
+                    ModelState.Remove("FechaFin"); ModelState.Remove("DiaSemana");
                     break;
 
                 case TipoTarea.Weekly:
-                    Hora = "";
-                    Fecha = "";
-                    ModelState.Remove("Hora");
-                    ModelState.Remove("Fecha");
+                    Hora = ""; Fecha = ""; FechaFin = "";
+                    ModelState.Remove("Hora"); ModelState.Remove("Fecha");
+                    ModelState.Remove("FechaFin");
                     break;
 
                 case TipoTarea.Specific:
-                    DiaSemana = "";
-                    ModelState.Remove("DiaSemana");
+                    DiaSemana = ""; FechaFin = "";
+                    ModelState.Remove("DiaSemana"); ModelState.Remove("FechaFin");
+                    break;
+
+                case TipoTarea.Event:
+                    DiaSemana = ""; Hora = "";
+                    ModelState.Remove("DiaSemana"); ModelState.Remove("Hora");
                     break;
             }
         }

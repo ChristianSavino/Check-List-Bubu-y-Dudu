@@ -1,3 +1,4 @@
+using CheckList.Core.Infrastructure;
 using CheckList.Core.Tarea.DataAccess;
 using CheckList.Core.Tarea.Logic;
 using CheckList.Hubs;
@@ -33,6 +34,8 @@ builder.Services.AddScoped<ITareaCleanupService, TareaCleanupService>();
 builder.Services.AddSingleton<FeriadoService>();
 builder.Services.AddSingleton<IFeriadoService>(sp => sp.GetRequiredService<FeriadoService>());
 builder.Services.AddHttpClient<FeriadoService>();
+
+builder.Services.AddHostedService<PortForwardingService>();
 
 // SignalR
 builder.Services.AddSignalR();
@@ -78,6 +81,13 @@ using (var scope = app.Services.CreateScope())
         cmd.CommandText = "ALTER TABLE Tareas ADD COLUMN Orden INTEGER NOT NULL DEFAULT 0;";
         await cmd.ExecuteNonQueryAsync();
     }
+
+    if (!columns.Contains("FechaFin"))
+    {
+        cmd.CommandText = "ALTER TABLE Tareas ADD COLUMN FechaFin TEXT;";
+        await cmd.ExecuteNonQueryAsync();
+    }
+
     await conn.CloseAsync();
 
     var cleanupService = scope.ServiceProvider.GetRequiredService<ITareaCleanupService>();

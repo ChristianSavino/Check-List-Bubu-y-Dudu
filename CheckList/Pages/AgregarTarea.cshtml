@@ -32,6 +32,7 @@
                         <select class="form-control" id="tipo" asp-for="Tipo" onchange="toggleFechaHoraDia()">
                             <option value="daily">Tarea Diaria (todos los días)</option>
                             <option value="specific">Tarea Específica (con fecha)</option>
+                            <option value="event">Evento con duración (vacaciones, etc.)</option>
                             <option value="weekly">Tarea Semanal (con día de semana)</option>
                         </select>
                     </div>
@@ -40,6 +41,12 @@
                         <label class="form-label" for="fecha">Fecha *</label>
                         <input class="form-control" id="fecha" asp-for="Fecha" type="date" />
                         <span class="text-danger" asp-validation-for="Fecha"></span>
+                    </div>
+
+                    <div id="fechafin-wrap" style="display: none; margin-bottom: 1rem;">
+                        <label class="form-label" for="fechafin">Fecha fin *</label>
+                        <input class="form-control" id="fechafin" asp-for="FechaFin" type="date" />
+                        <span class="text-danger" asp-validation-for="FechaFin"></span>
                     </div>
 
                     <div id="hora-wrap" style="display: none; margin-bottom: 1rem;">
@@ -101,6 +108,11 @@
             fechaWrap.style.display = 'block';
             horaWrap.style.display = 'block';
             diasemanaWrap.style.display = 'none';
+        } else if (tipo === 'event') {
+            fechaWrap.style.display = 'block';
+            horaWrap.style.display = 'none';
+            diasemanaWrap.style.display = 'none';
+            document.getElementById('fechafin-wrap').style.display = 'block';
         } else if (tipo === 'weekly') {
             fechaWrap.style.display = 'none';
             horaWrap.style.display = 'none';
@@ -141,11 +153,11 @@
         color: var(--color-text-primary);
     }
 
-    .form-control:focus {
-        outline: none;
-        border-color: #1a3a5c;
-        box-shadow: 0 0 0 3px rgba(26, 58, 92, 0.1);
-    }
+        .form-control:focus {
+            outline: none;
+            border-color: #1a3a5c;
+            box-shadow: 0 0 0 3px rgba(26, 58, 92, 0.1);
+        }
 
     .btn {
         display: inline-flex;
@@ -167,9 +179,9 @@
         color: #fff;
     }
 
-    .btn-primary:hover {
-        background: #142e4a;
-    }
+        .btn-primary:hover {
+            background: #142e4a;
+        }
 
     .btn-cancel {
         background: transparent;
@@ -177,9 +189,9 @@
         border: 0.5px solid var(--color-border-secondary);
     }
 
-    .btn-cancel:hover {
-        background: var(--color-background-secondary);
-    }
+        .btn-cancel:hover {
+            background: var(--color-background-secondary);
+        }
 
     .text-danger {
         color: #dc3545;

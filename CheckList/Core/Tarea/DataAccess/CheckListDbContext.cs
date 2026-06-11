@@ -41,6 +41,7 @@ namespace CheckList.Core.Tarea.DataAccess
                 entity.Property(e => e.Persona).HasMaxLength(50);
                 entity.Property(e => e.FechaCreacion).HasDefaultValueSql("CURRENT_TIMESTAMP");
                 entity.Property(e => e.FechaActualizacion).HasDefaultValueSql("CURRENT_TIMESTAMP");
+                entity.Property(e => e.FechaFin);
             });
 
             modelBuilder.Entity<AppSetting>(entity =>
