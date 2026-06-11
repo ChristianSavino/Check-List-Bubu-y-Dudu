@@ -11,6 +11,7 @@
             var diarias = Model.Tareas.Where(t => t.Tipo == "Daily").OrderBy(t => t.Orden).ToList();
             var semanales = Model.Tareas.Where(t => t.Tipo == "Weekly").OrderBy(t => t.Orden).ToList();
             var especificas = Model.Tareas.Where(t => t.Tipo == "Specific").ToList();
+            var eventos = Model.Tareas.Where(t => t.Tipo == "Event").ToList();
         }
 
         @* DIARIAS *@
@@ -75,10 +76,14 @@
                 <span class="badge">@especificas.Count</span>
             </div>
             <div class="card listar-card">
-                @if (especificas.Any())
+                @if (especificas.Any() || eventos.Any())
                 {
                     <div class="tareas-list" data-type="specific">
                         @foreach (var tarea in especificas)
+                        {
+                            @await Html.PartialAsync("_TareaItem", tarea, new ViewDataDictionary(ViewData) { { "showDay", false } })
+                        }
+                        @foreach (var tarea in eventos)
                         {
                             @await Html.PartialAsync("_TareaItem", tarea, new ViewDataDictionary(ViewData) { { "showDay", false } })
                         }

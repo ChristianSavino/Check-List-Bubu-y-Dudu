@@ -31,6 +31,7 @@ namespace CheckList.Pages
                     Tipo = t.Tipo.ToString(),
                     TipoLabel = TareaStringConverter.GetTipoTareaLabel(t.Tipo),
                     Fecha = t.Fecha?.ToString(TareaConstants.DATE_FORMAT),
+                    FechaFin = t.FechaFin?.ToString(TareaConstants.DATE_FORMAT),
                     Hora = t.Hora ?? "",
                     Persona = t.Persona ?? "",
                     DiaSemana = t.DiaSemana.HasValue
@@ -77,6 +78,7 @@ namespace CheckList.Pages
         public string Tipo { get; set; }
         public string TipoLabel { get; set; }
         public string? Fecha { get; set; }
+        public string? FechaFin { get; set; }
         public string Hora { get; set; }
         public string Persona { get; set; }
         public string DiaSemana { get; set; }
