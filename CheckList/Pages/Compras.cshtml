@@ -12,7 +12,7 @@
         @* COMPRAS DIARIAS *@
         <div>
             <div class="col-header">
-                🛒 Compras del día
+                <svg width="13" height="13" viewBox="0 0 13 13" fill="none"><circle cx="4.5" cy="11" r="1" stroke="currentColor" stroke-width="1"/><circle cx="9.5" cy="11" r="1" stroke="currentColor" stroke-width="1"/><path d="M1 1h1.5l1.8 7h5.9l1.8-5H5" stroke="currentColor" stroke-width="1.1" stroke-linecap="round" stroke-linejoin="round"/></svg> Compras del día
                 <span class="badge" id="diarias-badge">@Model.Diarias.Count</span>
                 <button class="btn-nueva" onclick="limpiarLista('Diaria')" title="Limpiar lista">
                     <svg width="12" height="12" viewBox="0 0 12 12" fill="none"><path d="M2 2l8 8M10 2l-8 8" stroke="currentColor" stroke-width="1.3" stroke-linecap="round"/></svg>
@@ -31,7 +31,7 @@
         @* OTRAS COMPRAS *@
         <div>
             <div class="col-header">
-                📦 Otras compras
+                <svg width="13" height="13" viewBox="0 0 13 13" fill="none"><rect x="1" y="4" width="11" height="8" rx="1" stroke="currentColor" stroke-width="1.1"/><path d="M1 4l5.5-3L12 4" stroke="currentColor" stroke-width="1.1" stroke-linecap="round" stroke-linejoin="round"/><path d="M5 7v2M8 7v2" stroke="currentColor" stroke-width="1.1" stroke-linecap="round"/></svg> Otras compras
                 <span class="badge" id="otras-badge">@Model.Otras.Count</span>
                 <button class="btn-nueva" onclick="limpiarLista('Otra')" title="Limpiar lista">
                     <svg width="12" height="12" viewBox="0 0 12 12" fill="none"><path d="M2 2l8 8M10 2l-8 8" stroke="currentColor" stroke-width="1.3" stroke-linecap="round"/></svg>
