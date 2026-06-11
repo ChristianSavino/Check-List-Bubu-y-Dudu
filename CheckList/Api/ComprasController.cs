@@ -89,8 +89,8 @@ namespace CheckList.Api
 
             return Ok(new
             {
-                diarias = diarias.Select(c => new { c.Id, c.Nombre, c.Completada }),
-                otras = otras.Select(c => new { c.Id, c.Nombre, c.Completada })
+                diarias = diarias.Select(c => new { c.Id, c.Nombre, c.Completada, c.Orden }),
+                otras = otras.Select(c => new { c.Id, c.Nombre, c.Completada, c.Orden })
             });
         }
     }

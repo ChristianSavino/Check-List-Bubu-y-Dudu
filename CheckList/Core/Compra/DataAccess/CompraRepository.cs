@@ -79,14 +79,9 @@ namespace CheckList.Core.Compra.DataAccess
         {
             for (int i = 0; i < ids.Count; i++)
             {
-                var compra = await _context.Compras.FindAsync(ids[i]);
-                if (compra != null)
-                {
-                    compra.Orden = i;
-                    _context.Compras.Update(compra);
-                }
+                await _context.Database.ExecuteSqlRawAsync(
+                    "UPDATE Compras SET Orden = {0} WHERE Id = {1}", i, ids[i]);
             }
-            await _context.SaveChangesAsync();
         }
     }
 }
