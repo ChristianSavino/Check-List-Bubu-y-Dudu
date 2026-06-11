@@ -102,6 +102,16 @@
     </div>
 </div>
 
+<script src="https://cdnjs.cloudflare.com/ajax/libs/microsoft-signalr/7.0.5/signalr.min.js"></script>
+<script>
+    var listConnection = new signalR.HubConnectionBuilder()
+        .withUrl("/checklistHub")
+        .withAutomaticReconnect()
+        .build();
+    listConnection.on("TasksUpdated", function() { window.location.reload(); });
+    listConnection.start().catch(function(err) { console.error("SignalR error:", err); });
+</script>
+
 <script>
     let draggedItem = null;
     let draggedFromList = null;

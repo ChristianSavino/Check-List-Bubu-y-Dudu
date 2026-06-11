@@ -1,13 +1,16 @@
 using CheckList.Core.Tarea.Domain;
 using CheckList.Core.Tarea.Logic;
+using CheckList.Hubs;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.RazorPages;
+using Microsoft.AspNetCore.SignalR;
 
 namespace CheckList.Pages
 {
     public class AgregarTareaModel : PageModel
     {
         private readonly ITareaService _tareaService;
+        private readonly IHubContext<ChecklistHub> _hubContext;
         private readonly ILogger<AgregarTareaModel> _logger;
 
         [BindProperty] public string Nombre { get; set; } = "";
@@ -22,9 +25,10 @@ namespace CheckList.Pages
         public bool IsEditing { get; set; }
         public string PageTitle { get; set; } = "Agregar Tarea";
 
-        public AgregarTareaModel(ITareaService tareaService, ILogger<AgregarTareaModel> logger)
+        public AgregarTareaModel(ITareaService tareaService, IHubContext<ChecklistHub> hubContext, ILogger<AgregarTareaModel> logger)
         {
             _tareaService = tareaService;
+            _hubContext = hubContext;
             _logger = logger;
         }
 
@@ -86,6 +90,9 @@ namespace CheckList.Pages
                     var tarea = TareaMapper.MapFromFormToEntity(Nombre, Tipo, Fecha, Hora, Persona, DiaSemana, FechaFin);
                     await _tareaService.CrearTareaAsync(tarea);
                 }
+
+                // Notificar a todos los clientes que las tareas cambiaron
+                await _hubContext.Clients.Group("checklist").SendAsync("TasksUpdated");
 
                 return RedirectToPage("/Index");
             }

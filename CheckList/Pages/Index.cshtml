@@ -206,6 +206,10 @@
         });
     });
 
+    connection.on("TasksUpdated", function() {
+        window.location.reload();
+    });
+
     connection.start().catch(function(err) { console.error('SignalR error:', err); });
 
     render();

@@ -78,6 +78,7 @@ namespace CheckList.Api
             if (ids == null || !ids.Any()) return BadRequest();
 
             await _repository.ReorderAsync(ids);
+            await _hubContext.Clients.Group("checklist").SendAsync("ComprasUpdated");
             return Ok();
         }
 

@@ -139,6 +139,25 @@
     </div>
 </div>
 
+@* SignalR: recargar calendario cuando cambian las tareas *@
+<script src="https://cdnjs.cloudflare.com/ajax/libs/microsoft-signalr/7.0.5/signalr.min.js"></script>
+<script>
+    var connection = new signalR.HubConnectionBuilder()
+    .withUrl("/checklistHub")
+    .withAutomaticReconnect()
+    .build();
+
+    connection.on("TasksUpdated", function() {
+        window.location.reload();
+    });
+
+    connection.on("TaskToggled", function() {
+        window.location.reload();
+    });
+
+    connection.start().catch(function(err) { console.error('SignalR error:', err); });
+</script>
+
 @* JS: posicionar tooltip con fixed para que no se corte *@
 <script>
     document.addEventListener('DOMContentLoaded', () => {

@@ -55,6 +55,7 @@ namespace CheckList.Controllers
                 if (ids == null || !ids.Any()) return BadRequest();
 
                 await _tareaService.ReordenarTareasAsync(ids);
+                await _hubContext.Clients.Group("checklist").SendAsync("TasksUpdated");
                 return Ok();
             }
             catch (Exception ex)
