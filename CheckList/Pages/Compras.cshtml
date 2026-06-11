@@ -1,0 +1,368 @@
+@page
+@model ComprasModel
+@{
+    ViewData["Title"] = "Compras";
+}
+
+<link rel="stylesheet" href="~/css/checklist.css" asp-append-version="true" />
+
+<div class="wrapper">
+    <div class="main compras-main">
+
+        @* COMPRAS DIARIAS *@
+        <div>
+            <div class="col-header">
+                🛒 Compras del día
+                <span class="badge" id="diarias-badge">@Model.Diarias.Count</span>
+                <button class="btn-nueva" onclick="limpiarLista('Diaria')" title="Limpiar lista">
+                    <svg width="12" height="12" viewBox="0 0 12 12" fill="none"><path d="M2 2l8 8M10 2l-8 8" stroke="currentColor" stroke-width="1.3" stroke-linecap="round"/></svg>
+                    Nueva
+                </button>
+            </div>
+            <div class="card compras-card">
+                <div class="compra-input-wrap">
+                    <input type="text" id="input-diaria" class="compra-input" placeholder="Agregar item..." onkeydown="if(event.key==='Enter')agregarItem('Diaria')" />
+                    <button class="compra-add-btn" onclick="agregarItem('Diaria')">+</button>
+                </div>
+                <div id="diarias-list"></div>
+            </div>
+        </div>
+
+        @* OTRAS COMPRAS *@
+        <div>
+            <div class="col-header">
+                📦 Otras compras
+                <span class="badge" id="otras-badge">@Model.Otras.Count</span>
+                <button class="btn-nueva" onclick="limpiarLista('Otra')" title="Limpiar lista">
+                    <svg width="12" height="12" viewBox="0 0 12 12" fill="none"><path d="M2 2l8 8M10 2l-8 8" stroke="currentColor" stroke-width="1.3" stroke-linecap="round"/></svg>
+                    Nueva
+                </button>
+            </div>
+            <div class="card compras-card">
+                <div class="compra-input-wrap">
+                    <input type="text" id="input-otra" class="compra-input" placeholder="Agregar item..." onkeydown="if(event.key==='Enter')agregarItem('Otra')" />
+                    <button class="compra-add-btn" onclick="agregarItem('Otra')">+</button>
+                </div>
+                <div id="otras-list"></div>
+            </div>
+        </div>
+
+    </div>
+</div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/microsoft-signalr/7.0.5/signalr.min.js"></script>
+
+<script>
+    var state = {
+        diarias: @Html.Raw(System.Text.Json.JsonSerializer.Serialize(Model.Diarias)),
+        otras:   @Html.Raw(System.Text.Json.JsonSerializer.Serialize(Model.Otras))
+    };
+
+    function escapeHtml(text) {
+        var div = document.createElement('div');
+        div.textContent = text || '';
+        return div.innerHTML;
+    }
+
+    function checkSVG() {
+        return '<svg width="11" height="11" viewBox="0 0 11 11" fill="none"><path d="M2 5.5l2.5 2.5L9 3" stroke="white" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>';
+    }
+
+    function renderList(listId, items, badgeId) {
+        var el = document.getElementById(listId);
+        document.getElementById(badgeId).textContent = items.length;
+
+        if (!items.length) {
+            el.innerHTML = '<div class="compras-empty">Lista vacía</div>';
+            return;
+        }
+
+        el.innerHTML = items.map(function(item) {
+            return '<div class="compra-item" draggable="true" data-id="' + item.Id + '">'
+                + '<div class="drag-handle">'
+                + '<svg width="14" height="14" viewBox="0 0 14 14" fill="none"><circle cx="3.5" cy="3" r="1.2" fill="currentColor"/><circle cx="3.5" cy="7" r="1.2" fill="currentColor"/><circle cx="3.5" cy="11" r="1.2" fill="currentColor"/><circle cx="7.5" cy="3" r="1.2" fill="currentColor"/><circle cx="7.5" cy="7" r="1.2" fill="currentColor"/><circle cx="7.5" cy="11" r="1.2" fill="currentColor"/></svg>'
+                + '</div>'
+                + '<div class="compra-check" onclick="toggleItem(' + item.Id + ')">'
+                + '<div class="checkbox' + (item.Completada ? ' checked' : '') + '">'
+                + (item.Completada ? checkSVG() : '')
+                + '</div>'
+                + '</div>'
+                + '<span class="compra-nombre' + (item.Completada ? ' done' : '') + '">' + escapeHtml(item.Nombre) + '</span>'
+                + '<button class="compra-delete" onclick="eliminarItem(' + item.Id + ')" title="Eliminar">'
+                + '<svg width="12" height="12" viewBox="0 0 12 12" fill="none"><path d="M2 2l8 8M10 2l-8 8" stroke="currentColor" stroke-width="1.2" stroke-linecap="round"/></svg>'
+                + '</button>'
+                + '</div>';
+        }).join('');
+    }
+
+    function render() {
+        renderList('diarias-list', state.diarias, 'diarias-badge');
+        renderList('otras-list', state.otras, 'otras-badge');
+    }
+
+    function toggleItem(id) {
+        // Optimistic update
+        var found = false;
+        ['diarias', 'otras'].forEach(function(key) {
+            var item = state[key].find(function(c) { return c.Id === id; });
+            if (item) { item.Completada = !item.Completada; found = true; }
+        });
+        if (found) render();
+
+        fetch('/api/compras/toggle/' + id, { method: 'POST' })
+            .then(function(r) { if (!r.ok) reloadData(); })
+            .catch(function() { reloadData(); });
+    }
+
+    function agregarItem(tipo) {
+        var inputId = tipo === 'Diaria' ? 'input-diaria' : 'input-otra';
+        var input = document.getElementById(inputId);
+        var nombre = input.value.trim();
+        if (!nombre) return;
+
+        input.value = '';
+        input.focus();
+
+        fetch('/api/compras/add', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ nombre: nombre, tipo: tipo })
+        })
+        .then(function(r) { return r.json(); })
+        .then(function(data) {
+            var key = tipo === 'Diaria' ? 'diarias' : 'otras';
+            state[key].push({ Id: data.id, Nombre: data.nombre, Completada: false });
+            render();
+        })
+        .catch(function(err) { console.error('Error:', err); });
+    }
+
+    function eliminarItem(id) {
+        ['diarias', 'otras'].forEach(function(key) {
+            state[key] = state[key].filter(function(c) { return c.Id !== id; });
+        });
+        render();
+
+        fetch('/api/compras/delete/' + id, { method: 'POST' })
+            .catch(function() { reloadData(); });
+    }
+
+    function limpiarLista(tipo) {
+        if (!confirm('¿Limpiar toda la lista de ' + (tipo === 'Diaria' ? 'compras del día' : 'otras compras') + '?'))
+            return;
+
+        var key = tipo === 'Diaria' ? 'diarias' : 'otras';
+        state[key] = [];
+        render();
+
+        fetch('/api/compras/clear/' + tipo, { method: 'POST' })
+            .catch(function() { reloadData(); });
+    }
+
+    function reloadData() {
+        fetch('/api/compras/list')
+            .then(function(r) { return r.json(); })
+            .then(function(data) {
+                state.diarias = (data.diarias || []).map(function(c) {
+                    return { Id: c.id, Nombre: c.nombre, Completada: c.completada };
+                });
+                state.otras = (data.otras || []).map(function(c) {
+                    return { Id: c.id, Nombre: c.nombre, Completada: c.completada };
+                });
+                render();
+            });
+    }
+
+    // SignalR sync
+    var connection = new signalR.HubConnectionBuilder()
+        .withUrl("/checklistHub")
+        .withAutomaticReconnect()
+        .build();
+
+    connection.on("ComprasUpdated", function() {
+        reloadData();
+    });
+
+    connection.start().catch(function(err) { console.error('SignalR error:', err); });
+
+    // ─── Drag & Drop ─────────────────────────────────────────────
+    var draggedItem = null;
+    var draggedFromList = null;
+
+    document.addEventListener('dragstart', function(e) {
+        var item = e.target.closest('.compra-item');
+        if (!item) return;
+        draggedItem = item;
+        draggedFromList = item.parentElement;
+        item.style.opacity = '0.5';
+    });
+
+    document.addEventListener('dragend', function(e) {
+        var item = e.target.closest('.compra-item');
+        if (item) item.style.opacity = '1';
+        draggedItem = null;
+        draggedFromList = null;
+    });
+
+    document.addEventListener('dragover', function(e) {
+        e.preventDefault();
+        if (!draggedItem || !draggedFromList) return;
+        var list = e.target.closest('#diarias-list, #otras-list');
+        if (!list || list !== draggedFromList) return;
+
+        var items = Array.from(list.querySelectorAll('.compra-item:not([style*="opacity"])'));
+        var after = items.reduce(function(closest, child) {
+            var box = child.getBoundingClientRect();
+            var offset = e.clientY - box.top - box.height / 2;
+            return (offset < 0 && offset > closest.offset) ? { offset: offset, element: child } : closest;
+        }, { offset: -Infinity }).element;
+
+        if (!after) list.appendChild(draggedItem);
+        else list.insertBefore(draggedItem, after);
+    });
+
+    document.addEventListener('drop', function(e) {
+        e.preventDefault();
+        if (!draggedFromList) return;
+        var ids = Array.from(draggedFromList.querySelectorAll('.compra-item'))
+            .map(function(el) { return parseInt(el.dataset.id); });
+
+        // Actualizar state local
+        var key = draggedFromList.id === 'diarias-list' ? 'diarias' : 'otras';
+        state[key] = ids.map(function(id) {
+            return state[key].find(function(c) { return c.Id === id; });
+        }).filter(Boolean);
+
+        fetch('/api/compras/reorder', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(ids)
+        }).catch(function(err) { console.error('Error:', err); });
+    });
+
+    render();
+</script>
+
+<style>
+    .compras-main {
+        grid-template-columns: 1fr 1fr;
+        max-width: 900px;
+        margin: 0 auto;
+    }
+
+    .compras-card { padding: 0; }
+
+    .compra-input-wrap {
+        display: flex;
+        gap: 0;
+        border-bottom: 1px solid var(--color-border-tertiary);
+    }
+
+    .compra-input {
+        flex: 1;
+        padding: 10px 14px;
+        border: none;
+        background: transparent;
+        font-size: 14px;
+        font-family: var(--font-sans);
+        color: var(--color-text-primary);
+        outline: none;
+    }
+
+    .compra-input::placeholder { color: var(--color-text-tertiary); }
+
+    .compra-add-btn {
+        padding: 10px 16px;
+        border: none;
+        background: transparent;
+        color: #1a3a5c;
+        font-size: 18px;
+        font-weight: 600;
+        cursor: pointer;
+        transition: background 0.15s;
+    }
+
+    .compra-add-btn:hover { background: rgba(26, 58, 92, 0.08); }
+
+    .compra-item {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        padding: 8px 14px;
+        border-bottom: 0.5px solid var(--color-border-tertiary);
+        transition: background 0.1s;
+        cursor: grab;
+    }
+
+    .compra-item:active { cursor: grabbing; }
+    .compra-item:last-child { border-bottom: none; }
+    .compra-item:hover { background: rgba(26, 58, 92, 0.02); }
+
+    .drag-handle {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        color: var(--color-text-tertiary);
+        cursor: grab;
+        flex-shrink: 0;
+        width: 14px;
+    }
+    .drag-handle:active { cursor: grabbing; }
+
+    .compra-check { cursor: pointer; flex-shrink: 0; }
+
+    .compra-nombre {
+        flex: 1;
+        font-size: 14px;
+        color: var(--color-text-primary);
+    }
+
+    .compra-nombre.done {
+        text-decoration: line-through;
+        color: var(--color-text-tertiary);
+    }
+
+    .compra-delete {
+        opacity: 0;
+        border: none;
+        background: transparent;
+        color: var(--color-text-tertiary);
+        cursor: pointer;
+        padding: 4px;
+        border-radius: 4px;
+        transition: all 0.15s;
+        flex-shrink: 0;
+    }
+
+    .compra-item:hover .compra-delete { opacity: 1; }
+    .compra-delete:hover { color: #dc3545; background: rgba(220, 53, 69, 0.1); }
+
+    .compras-empty {
+        padding: 2rem;
+        text-align: center;
+        color: var(--color-text-tertiary);
+        font-size: 13px;
+    }
+
+    .btn-nueva {
+        margin-left: auto;
+        display: inline-flex;
+        align-items: center;
+        gap: 4px;
+        padding: 4px 10px;
+        border: 0.5px solid #dc3545;
+        border-radius: var(--border-radius-md);
+        background: transparent;
+        color: #dc3545;
+        font-size: 11px;
+        font-family: var(--font-sans);
+        cursor: pointer;
+        transition: all 0.15s;
+    }
+
+    .btn-nueva:hover { background: rgba(220, 53, 69, 0.1); }
+
+    @@media (max-width: 640px) {
+        .compras-main { grid-template-columns: 1fr; }
+    }
+</style>

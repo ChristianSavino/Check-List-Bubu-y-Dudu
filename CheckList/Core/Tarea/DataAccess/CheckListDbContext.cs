@@ -1,5 +1,6 @@
-using Microsoft.EntityFrameworkCore;
+using CheckList.Core.Compra.Domain;
 using CheckList.Core.Tarea.Domain;
+using Microsoft.EntityFrameworkCore;
 
 namespace CheckList.Core.Tarea.DataAccess
 {
@@ -10,6 +11,7 @@ namespace CheckList.Core.Tarea.DataAccess
         }
 
         public DbSet<TareaEntity> Tareas { get; set; }
+        public DbSet<CompraEntity> Compras { get; set; }
         public DbSet<AppSetting> AppSettings { get; set; }
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
@@ -42,6 +44,21 @@ namespace CheckList.Core.Tarea.DataAccess
                 entity.Property(e => e.FechaCreacion).HasDefaultValueSql("CURRENT_TIMESTAMP");
                 entity.Property(e => e.FechaActualizacion).HasDefaultValueSql("CURRENT_TIMESTAMP");
                 entity.Property(e => e.FechaFin);
+            });
+
+            modelBuilder.Entity<CompraEntity>(entity =>
+            {
+                entity.HasKey(e => e.Id);
+                entity.Property(e => e.Nombre).IsRequired().HasMaxLength(255);
+                entity.Property(e => e.Tipo)
+                    .IsRequired()
+                    .HasMaxLength(20)
+                    .HasConversion(
+                        v => v.ToString(),
+                        v => Enum.Parse<TipoCompra>(v, true)
+                    );
+                entity.Property(e => e.Orden).HasDefaultValue(0);
+                entity.Property(e => e.FechaCreacion).HasDefaultValueSql("CURRENT_TIMESTAMP");
             });
 
             modelBuilder.Entity<AppSetting>(entity =>
