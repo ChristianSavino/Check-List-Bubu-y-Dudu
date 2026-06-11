@@ -1,9 +1,11 @@
 using Open.Nat;
+using System.Net.NetworkInformation;
+using System.Net.Sockets;
 
 namespace CheckList.Core.Infrastructure
 {
     /// <summary>
-    /// Abre el puerto HTTPS en el router via UPnP al iniciar la app.
+    /// Abre el puerto HTTPS en el router vía UPnP al iniciar la app.
     /// Lo cierra al parar (Ctrl+C, kill, crash manejable, etc.)
     /// </summary>
     public class PortForwardingService : IHostedService
@@ -16,9 +18,11 @@ namespace CheckList.Core.Infrastructure
         public PortForwardingService(ILogger<PortForwardingService> logger, IConfiguration config)
         {
             _logger = logger;
+
             // Configurable desde appsettings, default 7226
             _port = config.GetValue<int>("PortForwarding:Port", 7226);
-            _name = config.GetValue<string>("PortForwarding:Name", "CheckList-Bubu-Dudu") ?? "CheckList-Bubu-Dudu";
+            _name = config.GetValue<string>("PortForwarding:Name", "CheckList-Bubu-Dudu")
+                    ?? "CheckList-Bubu-Dudu";
         }
 
         public async Task StartAsync(CancellationToken cancellationToken)
@@ -39,9 +43,16 @@ namespace CheckList.Core.Infrastructure
                 await _device.CreatePortMapAsync(mapping);
 
                 var externalIp = await _device.GetExternalIPAsync();
-                _logger.LogInformation(
-                    "Puerto {Port} abierto en el router. Acceso externo: https://{Ip}:{Port}",
-                    _port, externalIp, _port);
+                var localIp = GetLocalIPv4();
+
+                _logger.LogInformation($"""
+                    ============================================
+                    Puerto {_port} abierto correctamente.
+                    Acceso local:   https://{localIp}:{_port}
+                    Acceso externo: https://{externalIp}:{_port}
+                    ============================================
+                    """
+                   );
             }
             catch (NatDeviceNotFoundException)
             {
@@ -49,7 +60,9 @@ namespace CheckList.Core.Infrastructure
             }
             catch (Exception ex)
             {
-                _logger.LogWarning(ex, "No se pudo abrir el puerto {Port}. La app funciona igual en red local.", _port);
+                _logger.LogWarning(ex,
+                    "No se pudo abrir el puerto {Port}. La app funciona igual en red local.",
+                    _port);
             }
         }
 
@@ -60,18 +73,48 @@ namespace CheckList.Core.Infrastructure
 
         private async Task TryRemoveMapping()
         {
-            if (_device == null) return;
+            if (_device == null)
+                return;
 
             try
             {
                 var mapping = new Mapping(Protocol.Tcp, _port, _port);
                 await _device.DeletePortMapAsync(mapping);
+
                 _logger.LogInformation("Puerto {Port} cerrado en el router.", _port);
             }
             catch (Exception ex)
             {
-                _logger.LogWarning(ex, "No se pudo cerrar el puerto {Port} en el router.", _port);
+                _logger.LogWarning(ex,
+                    "No se pudo cerrar el puerto {Port} en el router.",
+                    _port);
             }
+        }
+
+        /// <summary>
+        /// Obtiene la IP IPv4 local de la interfaz de red activa.
+        /// </summary>
+        private static string? GetLocalIPv4()
+        {
+            var interfaces = NetworkInterface.GetAllNetworkInterfaces()
+                .Where(n =>
+                    n.OperationalStatus == OperationalStatus.Up &&
+                    n.NetworkInterfaceType != NetworkInterfaceType.Loopback &&
+                    n.NetworkInterfaceType != NetworkInterfaceType.Tunnel &&
+                    !n.Description.Contains("Virtual", StringComparison.OrdinalIgnoreCase));
+
+            foreach (var ni in interfaces)
+            {
+                foreach (var addr in ni.GetIPProperties().UnicastAddresses)
+                {
+                    if (addr.Address.AddressFamily == AddressFamily.InterNetwork)
+                    {
+                        return addr.Address.ToString();
+                    }
+                }
+            }
+
+            return null;
         }
     }
 }
