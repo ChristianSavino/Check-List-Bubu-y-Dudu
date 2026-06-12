@@ -1,5 +1,6 @@
 using CheckList.Core.Compra.DataAccess;
 using CheckList.Core.Infrastructure;
+using CheckList.Core.Persona.DataAccess;
 using CheckList.Core.Tarea.DataAccess;
 using CheckList.Core.Tarea.Logic;
 using CheckList.Hubs;
@@ -26,6 +27,7 @@ builder.Services.AddDbContext<CheckListDbContext>(options =>
 // Repositorios
 builder.Services.AddScoped<ITareaRepository, TareaRepository>();
 builder.Services.AddScoped<ICompraRepository, CompraRepository>();
+builder.Services.AddScoped<IPersonaRepository, PersonaRepository>();
 builder.Services.AddScoped<IAppSettingRepository, AppSettingRepository>();
 
 // Servicios
@@ -48,11 +50,15 @@ builder.Services.AddRazorPages()
 
 var app = builder.Build();
 
-// Inicializar DB, cleanup y feriados
+// Inicializar DB, seed, cleanup y feriados
 using (var scope = app.Services.CreateScope())
 {
     var dbContext = scope.ServiceProvider.GetRequiredService<CheckListDbContext>();
     await dbContext.Database.EnsureCreatedAsync();
+
+    // Seed personas por defecto (Bubu, Dudu) si la tabla está vacía
+    var personaRepo = scope.ServiceProvider.GetRequiredService<IPersonaRepository>();
+    await personaRepo.SeedDefaultsAsync();
 
     var cleanupService = scope.ServiceProvider.GetRequiredService<ITareaCleanupService>();
     await cleanupService.CleanupAsync();

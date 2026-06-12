@@ -73,8 +73,10 @@
                         <label class="form-label" for="persona">Persona (opcional)</label>
                         <select class="form-control" id="persona" asp-for="Persona">
                             <option value="">Sin asignar</option>
-                            <option value="Bubu">Bubu</option>
-                            <option value="Dudu">Dudu</option>
+                            @foreach (var p in Model.PersonasDisponibles)
+                            {
+                                <option value="@p">@p</option>
+                            }
                         </select>
                     </div>
 
@@ -128,6 +130,35 @@
     document.addEventListener('DOMContentLoaded', function() {
         toggleFechaHoraDia();
     });
+</script>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/microsoft-signalr/7.0.5/signalr.min.js"></script>
+<script>
+    (function() {
+        var conn = new signalR.HubConnectionBuilder()
+            .withUrl("/checklistHub")
+            .withAutomaticReconnect()
+            .build();
+
+        conn.on("PersonasUpdated", function() {
+            fetch('/api/personas/list')
+            .then(function(r) { return r.json(); })
+            .then(function(data) {
+                var select = document.getElementById('persona');
+                var current = select.value;
+                select.innerHTML = '<option value="">Sin asignar</option>';
+                data.forEach(function(p) {
+                    var opt = document.createElement('option');
+                    opt.value = p.nombre;
+                    opt.textContent = p.nombre;
+                    if (p.nombre === current) opt.selected = true;
+                    select.appendChild(opt);
+                });
+            });
+        });
+
+        conn.start().catch(function(err) { console.error('SignalR error:', err); });
+    })();
 </script>
 
 <style>

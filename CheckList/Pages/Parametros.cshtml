@@ -1,0 +1,303 @@
+@page
+@model ParametrosModel
+@{
+    ViewData["Title"] = "Parámetros";
+}
+
+<link rel="stylesheet" href="~/css/checklist.css" asp-append-version="true" />
+
+<div class="wrapper">
+    <div class="main" style="grid-template-columns: 1fr; max-width: 800px; margin: 0 auto;">
+        <div class="params-layout">
+
+        @* SIDEBAR - secciones extensibles *@
+        <nav class="params-sidebar">
+            <div class="params-sidebar-title">Parámetros</div>
+            <a href="#personas" class="params-nav-item active" onclick="mostrarSeccion('personas', this)">
+                <svg width="13" height="13" viewBox="0 0 13 13" fill="none"><circle cx="6.5" cy="4" r="2.5" stroke="currentColor" stroke-width="1.1"/><path d="M1.5 12c0-2.5 2.2-4.5 5-4.5s5 2 5 4.5" stroke="currentColor" stroke-width="1.1" stroke-linecap="round"/></svg>
+                Personas
+            </a>
+            @* Futuras secciones van acá *@
+        </nav>
+
+        @* CONTENIDO *@
+        <div class="params-content">
+
+            @* SECCIÓN: PERSONAS *@
+            <div id="seccion-personas" class="params-section">
+                <div class="col-header">
+                    <svg width="13" height="13" viewBox="0 0 13 13" fill="none"><circle cx="6.5" cy="4" r="2.5" stroke="currentColor" stroke-width="1.1"/><path d="M1.5 12c0-2.5 2.2-4.5 5-4.5s5 2 5 4.5" stroke="currentColor" stroke-width="1.1" stroke-linecap="round"/></svg>
+                    Personas
+                    <span class="badge" id="personas-badge">@Model.Personas.Count</span>
+                </div>
+                <p class="params-desc">Las personas disponibles para asignar tareas. Se muestran en el selector al crear o modificar una tarea.</p>
+                <div class="card">
+                    <div class="persona-input-wrap">
+                        <input type="text" id="input-persona" class="persona-input" placeholder="Nueva persona..." maxlength="50" onkeydown="if(event.key==='Enter')agregarPersona()" />
+                        <button class="persona-add-btn" onclick="agregarPersona()">+</button>
+                    </div>
+                    <div id="personas-list"></div>
+                </div>
+            </div>
+
+        </div>
+    </div>
+    </div>
+</div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/microsoft-signalr/7.0.5/signalr.min.js"></script>
+
+<script>
+    var state = {
+        personas: @Html.Raw(System.Text.Json.JsonSerializer.Serialize(Model.Personas))
+    };
+
+    function escapeHtml(text) {
+        var div = document.createElement('div');
+        div.textContent = text || '';
+        return div.innerHTML;
+    }
+
+    // ─── Render ──────────────────────────────────────────────────────
+    function render() {
+        var el = document.getElementById('personas-list');
+        document.getElementById('personas-badge').textContent = state.personas.length;
+
+        if (!state.personas.length) {
+            el.innerHTML = '<div class="persona-empty">Sin personas configuradas</div>';
+            return;
+        }
+
+        el.innerHTML = state.personas.map(function(p) {
+            return '<div class="persona-item" data-id="' + p.Id + '">'
+                + '<span class="persona-nombre" id="nombre-' + p.Id + '">' + escapeHtml(p.Nombre) + '</span>'
+                + '<div class="persona-actions">'
+                + '<button class="btn-action btn-edit" onclick="editarPersona(' + p.Id + ')" title="Editar">'
+                + '<svg width="12" height="12" viewBox="0 0 12 12" fill="none"><path d="M2 9l1-1 5.5-5.5 1 1L4 9H2z" stroke="currentColor" stroke-width="1" stroke-linecap="round" stroke-linejoin="round"/></svg>'
+                + '</button>'
+                + '<button class="btn-action btn-delete" onclick="eliminarPersona(' + p.Id + ', \'' + escapeHtml(p.Nombre).replace(/'/g, "\\'") + '\')" title="Eliminar">'
+                + '<svg width="12" height="12" viewBox="0 0 12 12" fill="none"><path d="M2 2l8 8M10 2l-8 8" stroke="currentColor" stroke-width="1.2" stroke-linecap="round"/></svg>'
+                + '</button>'
+                + '</div>'
+                + '</div>';
+        }).join('');
+    }
+
+    // ─── CRUD ────────────────────────────────────────────────────────
+    function agregarPersona() {
+        var input = document.getElementById('input-persona');
+        var nombre = input.value.trim();
+        if (!nombre) return;
+
+        input.value = '';
+        input.disabled = true;
+
+        fetch('/api/personas/add', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ nombre: nombre })
+        })
+        .then(function(r) {
+            if (!r.ok) return r.text().then(function(t) { throw new Error(t); });
+            return r.json();
+        })
+        .then(function(data) {
+            state.personas.push({ Id: data.id, Nombre: data.nombre });
+            render();
+            input.disabled = false;
+            input.focus();
+        })
+        .catch(function(err) {
+            alert(err.message || 'Error al agregar persona');
+            input.disabled = false;
+        });
+    }
+
+    function editarPersona(id) {
+        var persona = state.personas.find(function(p) { return p.Id === id; });
+        if (!persona) return;
+
+        var nuevoNombre = prompt('Nuevo nombre para "' + persona.Nombre + '":', persona.Nombre);
+        if (!nuevoNombre || nuevoNombre.trim() === persona.Nombre) return;
+
+        fetch('/api/personas/update/' + id, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ nombre: nuevoNombre.trim() })
+        })
+        .then(function(r) {
+            if (!r.ok) return r.text().then(function(t) { throw new Error(t); });
+            return r.json();
+        })
+        .then(function(data) {
+            persona.Nombre = data.nombre;
+            render();
+        })
+        .catch(function(err) {
+            alert(err.message || 'Error al editar persona');
+        });
+    }
+
+    function eliminarPersona(id, nombre) {
+        if (!confirm('¿Eliminar a "' + nombre + '"? Las tareas asignadas quedarán sin persona.'))
+            return;
+
+        fetch('/api/personas/delete/' + id, { method: 'POST' })
+        .then(function(r) {
+            if (!r.ok) throw new Error('Error al eliminar');
+            state.personas = state.personas.filter(function(p) { return p.Id !== id; });
+            render();
+        })
+        .catch(function(err) { alert(err.message); });
+    }
+
+    // ─── Secciones (extensible) ──────────────────────────────────────
+    function mostrarSeccion(seccion, link) {
+        document.querySelectorAll('.params-section').forEach(function(s) { s.style.display = 'none'; });
+        document.querySelectorAll('.params-nav-item').forEach(function(l) { l.classList.remove('active'); });
+        var el = document.getElementById('seccion-' + seccion);
+        if (el) el.style.display = 'block';
+        if (link) link.classList.add('active');
+    }
+
+    // ─── SignalR ─────────────────────────────────────────────────────
+    var connection = new signalR.HubConnectionBuilder()
+        .withUrl("/checklistHub")
+        .withAutomaticReconnect()
+        .build();
+
+    connection.on("PersonasUpdated", function() {
+        fetch('/api/personas/list')
+        .then(function(r) { return r.json(); })
+        .then(function(data) {
+            state.personas = data.map(function(p) { return { Id: p.id, Nombre: p.nombre }; });
+            render();
+        });
+    });
+
+    connection.start().catch(function(err) { console.error('SignalR error:', err); });
+
+    render();
+</script>
+
+<style>
+    .params-layout {
+        display: grid;
+        grid-template-columns: 200px 1fr;
+        gap: 1.5rem;
+        max-width: 800px;
+        margin: 0 auto;
+    }
+
+    .params-sidebar {
+        display: flex;
+        flex-direction: column;
+        gap: 2px;
+    }
+
+    .params-sidebar-title {
+        font-size: 11px;
+        font-weight: 600;
+        color: var(--color-text-tertiary);
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+        padding: 0 10px 8px;
+        margin-bottom: 4px;
+    }
+
+    .params-nav-item {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        padding: 8px 10px;
+        border-radius: var(--border-radius-md);
+        font-size: 13px;
+        color: var(--color-text-secondary);
+        text-decoration: none;
+        transition: all 0.15s;
+    }
+
+    .params-nav-item:hover { background: var(--color-background-primary); color: var(--color-text-primary); }
+    .params-nav-item.active { background: var(--color-background-primary); color: var(--color-text-primary); font-weight: 500; }
+
+    .params-desc {
+        font-size: 12px;
+        color: var(--color-text-tertiary);
+        margin: 0 0 0.75rem;
+        line-height: 1.5;
+    }
+
+    .persona-input-wrap {
+        display: flex;
+        border-bottom: 1px solid var(--color-border-tertiary);
+    }
+
+    .persona-input {
+        flex: 1;
+        padding: 10px 14px;
+        border: none;
+        background: transparent;
+        font-size: 14px;
+        font-family: var(--font-sans);
+        color: var(--color-text-primary);
+        outline: none;
+    }
+
+    .persona-input::placeholder { color: var(--color-text-tertiary); }
+
+    .persona-add-btn {
+        padding: 10px 16px;
+        border: none;
+        background: transparent;
+        color: #1a3a5c;
+        font-size: 18px;
+        font-weight: 600;
+        cursor: pointer;
+    }
+
+    .persona-add-btn:hover { background: rgba(26, 58, 92, 0.08); }
+
+    .persona-item {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        padding: 10px 14px;
+        border-bottom: 0.5px solid var(--color-border-tertiary);
+    }
+
+    .persona-item:last-child { border-bottom: none; }
+    .persona-item:hover { background: rgba(26, 58, 92, 0.02); }
+
+    .persona-nombre { font-size: 14px; color: var(--color-text-primary); }
+
+    .persona-actions { display: flex; gap: 6px; }
+
+    .persona-empty {
+        padding: 2rem;
+        text-align: center;
+        color: var(--color-text-tertiary);
+        font-size: 13px;
+    }
+
+    .btn-action {
+        display: inline-flex;
+        align-items: center;
+        padding: 4px 6px;
+        border-radius: var(--border-radius-md);
+        cursor: pointer;
+        border: 0.5px solid;
+        background: transparent;
+        transition: all 0.15s;
+    }
+
+    .btn-edit { color: #1a3a5c; border-color: #1a3a5c; }
+    .btn-edit:hover { background: rgba(26, 58, 92, 0.1); }
+    .btn-delete { color: #dc3545; border-color: #dc3545; }
+    .btn-delete:hover { background: rgba(220, 53, 69, 0.1); }
+
+    @@media (max-width: 640px) {
+        .params-layout { grid-template-columns: 1fr; }
+        .params-sidebar { flex-direction: row; overflow-x: auto; gap: 4px; padding-bottom: 0.5rem; border-bottom: 0.5px solid var(--color-border-tertiary); }
+        .params-sidebar-title { display: none; }
+    }
+</style>

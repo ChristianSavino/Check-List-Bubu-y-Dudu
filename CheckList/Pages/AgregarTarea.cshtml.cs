@@ -1,3 +1,4 @@
+using CheckList.Core.Persona.DataAccess;
 using CheckList.Core.Tarea.Domain;
 using CheckList.Core.Tarea.Logic;
 using CheckList.Hubs;
@@ -10,6 +11,7 @@ namespace CheckList.Pages
     public class AgregarTareaModel : PageModel
     {
         private readonly ITareaService _tareaService;
+        private readonly IPersonaRepository _personaRepository;
         private readonly IHubContext<ChecklistHub> _hubContext;
         private readonly ILogger<AgregarTareaModel> _logger;
 
@@ -25,9 +27,13 @@ namespace CheckList.Pages
         public bool IsEditing { get; set; }
         public string PageTitle { get; set; } = "Agregar Tarea";
 
-        public AgregarTareaModel(ITareaService tareaService, IHubContext<ChecklistHub> hubContext, ILogger<AgregarTareaModel> logger)
+        // Personas dinámicas desde DB
+        public List<string> PersonasDisponibles { get; set; } = new();
+
+        public AgregarTareaModel(ITareaService tareaService, IPersonaRepository personaRepository, IHubContext<ChecklistHub> hubContext, ILogger<AgregarTareaModel> logger)
         {
             _tareaService = tareaService;
+            _personaRepository = personaRepository;
             _hubContext = hubContext;
             _logger = logger;
         }
@@ -36,6 +42,8 @@ namespace CheckList.Pages
         {
             try
             {
+                await CargarPersonas();
+
                 TareaId = id;
                 IsEditing = id.HasValue;
 
@@ -71,6 +79,7 @@ namespace CheckList.Pages
                 var errores = TareaValidator.ValidateFormInput(Nombre, Tipo, Fecha, DiaSemana, FechaFin);
                 if (errores.Any())
                 {
+                    await CargarPersonas();
                     foreach (var error in errores)
                         ModelState.AddModelError(error.Field, error.Message);
                     return Page();
@@ -91,17 +100,22 @@ namespace CheckList.Pages
                     await _tareaService.CrearTareaAsync(tarea);
                 }
 
-                // Notificar a todos los clientes que las tareas cambiaron
                 await _hubContext.Clients.Group("checklist").SendAsync("TasksUpdated");
-
                 return RedirectToPage("/Index");
             }
             catch (Exception ex)
             {
                 _logger.LogError(ex, "Error al guardar tarea");
+                await CargarPersonas();
                 ModelState.AddModelError("", "Error al guardar la tarea");
                 return Page();
             }
+        }
+
+        private async Task CargarPersonas()
+        {
+            var personas = await _personaRepository.GetAllAsync();
+            PersonasDisponibles = personas.Select(p => p.Nombre).ToList();
         }
 
         private void LimpiarCamposPorTipo()
@@ -115,18 +129,15 @@ namespace CheckList.Pages
                     ModelState.Remove("Hora"); ModelState.Remove("Fecha");
                     ModelState.Remove("FechaFin"); ModelState.Remove("DiaSemana");
                     break;
-
                 case TipoTarea.Weekly:
                     Hora = ""; Fecha = ""; FechaFin = "";
                     ModelState.Remove("Hora"); ModelState.Remove("Fecha");
                     ModelState.Remove("FechaFin");
                     break;
-
                 case TipoTarea.Specific:
                     DiaSemana = ""; FechaFin = "";
                     ModelState.Remove("DiaSemana"); ModelState.Remove("FechaFin");
                     break;
-
                 case TipoTarea.Event:
                     DiaSemana = ""; Hora = "";
                     ModelState.Remove("DiaSemana"); ModelState.Remove("Hora");
