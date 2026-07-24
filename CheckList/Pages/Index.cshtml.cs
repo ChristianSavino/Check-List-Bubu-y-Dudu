@@ -39,21 +39,25 @@ namespace CheckList.Pages
                 var tareasMañana          = await _tareaService.GetTareasMañanaAsync();
                 var eventosHoy            = await _tareaService.GetEventosActivosEnFechaAsync(hoy);
                 var eventosMañana         = await _tareaService.GetEventosActivosEnFechaAsync(mañana);
+                var cumpleanosHoy         = await _tareaService.GetCumpleanosActivosEnFechaAsync(hoy);
+                var cumpleanosMañana      = await _tareaService.GetCumpleanosActivosEnFechaAsync(mañana);
 
                 Daily = ConvertirDtos(TareaMapper.MapToList(tareasDiarias, hoy));
 
-                // Hoy: específicas + semanales + eventos del día
+                // Hoy: específicas + semanales + eventos + cumpleaños
                 var tareasHoyCombinadas = new List<CoreTareaDto>();
                 tareasHoyCombinadas.AddRange(TareaMapper.MapToList(tareasHoy, hoy));
                 tareasHoyCombinadas.AddRange(TareaMapper.MapToList(tareasSemanalesHoy, hoy));
                 tareasHoyCombinadas.AddRange(TareaMapper.MapEventosParaDia(eventosHoy, hoy));
+                tareasHoyCombinadas.AddRange(TareaMapper.MapEventosParaDia(cumpleanosHoy, hoy));
                 Today = ConvertirDtos(tareasHoyCombinadas);
 
-                // Mañana: específicas + semanales + eventos
+                // Mañana: específicas + semanales + eventos + cumpleaños
                 var tareasMañanaCombinadas = new List<CoreTareaDto>();
-                tareasMañanaCombinadas.AddRange(TareaMapper.MapToList(tareasMañana, hoy));
-                tareasMañanaCombinadas.AddRange(TareaMapper.MapToList(tareasSemanalesMañana, hoy));
+                tareasMañanaCombinadas.AddRange(TareaMapper.MapToList(tareasMañana, mañana));
+                tareasMañanaCombinadas.AddRange(TareaMapper.MapToList(tareasSemanalesMañana, mañana));
                 tareasMañanaCombinadas.AddRange(TareaMapper.MapEventosParaDia(eventosMañana, mañana));
+                tareasMañanaCombinadas.AddRange(TareaMapper.MapEventosParaDia(cumpleanosMañana, mañana));
                 Tomorrow = ConvertirDtos(tareasMañanaCombinadas);
             }
             catch (Exception ex)
@@ -85,10 +89,10 @@ namespace CheckList.Pages
             {
                 if (id <= 0) return BadRequest();
 
-                // No permitir toggle en eventos
+                // No permitir toggle en eventos ni cumpleaños
                 var tarea = await _tareaService.GetTareaByIdAsync(id);
                 if (tarea == null) return NotFound();
-                if (tarea.Tipo == TipoTarea.Event) return BadRequest();
+                if (tarea.Tipo == TipoTarea.Event || tarea.Tipo == TipoTarea.Birthday) return BadRequest();
 
                 await _tareaService.ToggleTareaAsync(id);
 

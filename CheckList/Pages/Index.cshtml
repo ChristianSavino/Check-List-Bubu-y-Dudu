@@ -108,6 +108,15 @@
             typeTag = ' <span class="task-type">' + escapeHtml(t.TipoTareaLabel) + '</span>';
         }
 
+        // Cumpleaños: sin checkbox, con ícono de tortita, sin persona
+        if (t.EsEvento && t.TipoTarea === 'birthday') {
+            return '<div class="task-item event-item birthday-item">'
+                + '<div class="event-icon">🎂</div>'
+                + '<div class="task-info">'
+                + '<div class="task-label">' + escapeHtml(t.Label) + ' <span class="task-type">Cumpleaños</span></div>'
+                + '</div></div>';
+        }
+
         // Eventos: sin checkbox, con ícono de calendario
         if (t.EsEvento) {
             return '<div class="task-item event-item">'
@@ -149,6 +158,13 @@
             var typeTag = '';
             if (t.TipoTareaLabel && t.TipoTareaLabel !== 'Diaria') {
                 typeTag = ' <span class="task-type">' + escapeHtml(t.TipoTareaLabel) + '</span>';
+            }
+            // Cumpleaños: icono de tortita
+            if (t.EsEvento && t.TipoTarea === 'birthday') {
+                return '<div class="tomorrow-item event-item birthday-item">'
+                    + '<div class="event-icon">🎂</div>'
+                    + '<div class="task-info"><div class="task-label">' + escapeHtml(t.Label) + ' <span class="task-type">Cumpleaños</span></div></div>'
+                    + '</div>';
             }
             if (t.EsEvento) {
                 return '<div class="tomorrow-item event-item">'

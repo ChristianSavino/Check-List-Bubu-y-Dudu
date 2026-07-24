@@ -55,6 +55,13 @@ namespace CheckList.Core.Tarea.Logic
                 await _tareaRepository.DeleteTareaAsync(tarea.Id);
             }
 
+            // 3.5. Borrar eventos cuya fecha fin ha pasado (NO se borran cumpleaños, se repiten anualmente)
+            var eventosPasados = await _tareaRepository.GetEventosPasadosAsync(hoy);
+            foreach (var evento in eventosPasados)
+            {
+                await _tareaRepository.DeleteTareaAsync(evento.Id);
+            }
+
             // 4. Resetear tareas semanales completadas cuyo día vuelve a tocar hoy
             var diaHoy = hoy.DayOfWeek;
 

@@ -49,6 +49,7 @@ namespace CheckList.Core.Tarea.Domain
                 TipoTarea.Specific => "Específica",
                 TipoTarea.Weekly   => "Semanal",
                 TipoTarea.Event    => "Evento",
+                TipoTarea.Birthday => "Cumpleaños",
                 _                  => "Desconocida"
             };
         }

@@ -142,6 +142,10 @@ namespace CheckList.Pages
                     DiaSemana = ""; Hora = "";
                     ModelState.Remove("DiaSemana"); ModelState.Remove("Hora");
                     break;
+                case TipoTarea.Birthday:
+                    DiaSemana = ""; Hora = "";
+                    ModelState.Remove("DiaSemana"); ModelState.Remove("Hora");
+                    break;
             }
         }
     }

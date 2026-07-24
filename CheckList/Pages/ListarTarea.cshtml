@@ -6,12 +6,12 @@
 
 <div class="wrapper">
     <div class="main listar-main">
-
         @{
             var diarias = Model.Tareas.Where(t => t.Tipo == "Daily").OrderBy(t => t.Orden).ToList();
             var semanales = Model.Tareas.Where(t => t.Tipo == "Weekly").OrderBy(t => t.Orden).ToList();
             var especificas = Model.Tareas.Where(t => t.Tipo == "Specific").ToList();
             var eventos = Model.Tareas.Where(t => t.Tipo == "Event").ToList();
+            var cumpleaños = Model.Tareas.Where(t => t.Tipo == "Birthday").ToList();
         }
 
         @* DIARIAS *@
@@ -76,14 +76,10 @@
                 <span class="badge">@especificas.Count</span>
             </div>
             <div class="card listar-card">
-                @if (especificas.Any() || eventos.Any())
+                @if (especificas.Any())
                 {
                     <div class="tareas-list" data-type="specific">
                         @foreach (var tarea in especificas)
-                        {
-                            @await Html.PartialAsync("_TareaItem", tarea, new ViewDataDictionary(ViewData) { { "showDay", false } })
-                        }
-                        @foreach (var tarea in eventos)
                         {
                             @await Html.PartialAsync("_TareaItem", tarea, new ViewDataDictionary(ViewData) { { "showDay", false } })
                         }
@@ -97,8 +93,66 @@
                     </div>
                 }
             </div>
-        </div>
 
+        </div>
+        <div>
+            @* EVENTOS *@
+            <div>
+                <div class="col-header">
+                    <svg width="13" height="13" viewBox="0 0 13 13" fill="none"><rect x="0.5" y="1.5" width="12" height="10" rx="1.5" stroke="currentColor" stroke-width="1.1" /><path d="M4 0.5v2M9 0.5v2M0.5 5.5h12" stroke="currentColor" stroke-width="1.1" stroke-linecap="round" /></svg>
+                    Eventos
+                    <span class="badge">@eventos.Count</span>
+                </div>
+                <div class="card listar-card">
+                    @if (eventos.Any())
+                    {
+                        <div class="tareas-list" data-type="specific">
+                            @foreach (var tarea in eventos)
+                            {
+                                @await Html.PartialAsync("_TareaItem", tarea, new ViewDataDictionary(ViewData) { { "showDay", false } })
+                            }
+                        </div>
+                    }
+                    else
+                    {
+                        <div class="empty-state">
+                            <svg width="26" height="26" viewBox="0 0 26 26" fill="none"><rect x="1" y="1" width="24" height="24" rx="5" stroke="var(--color-border-secondary)" stroke-width="1" stroke-dasharray="4 3" /><path d="M8 13h10M13 8v10" stroke="var(--color-border-secondary)" stroke-width="1.1" stroke-linecap="round" /></svg>
+                            Sin eventos
+                        </div>
+                    }
+                </div>
+            </div>
+        </div>
+        <div>
+            <div>
+                @* CUMPLEAÑOS *@
+                <div>
+                    <div class="col-header">
+                        <svg width="13" height="13" viewBox="0 0 13 13" fill="none"><rect x="0.5" y="1.5" width="12" height="10" rx="1.5" stroke="currentColor" stroke-width="1.1" /><path d="M4 0.5v2M9 0.5v2M0.5 5.5h12" stroke="currentColor" stroke-width="1.1" stroke-linecap="round" /></svg>
+                        Cumpleaños
+                        <span class="badge">@cumpleaños.Count</span>
+                    </div>
+                    <div class="card listar-card">
+                        @if (cumpleaños.Any())
+                        {
+                            <div class="tareas-list" data-type="specific">
+                                @foreach (var tarea in cumpleaños)
+                                {
+                                    @await Html.PartialAsync("_TareaItem", tarea, new ViewDataDictionary(ViewData) { { "showDay", false } })
+                                }
+                            </div>
+                        }
+                        else
+                        {
+                            <div class="empty-state">
+                                <svg width="26" height="26" viewBox="0 0 26 26" fill="none"><rect x="1" y="1" width="24" height="24" rx="5" stroke="var(--color-border-secondary)" stroke-width="1" stroke-dasharray="4 3" /><path d="M8 13h10M13 8v10" stroke="var(--color-border-secondary)" stroke-width="1.1" stroke-linecap="round" /></svg>
+                                Sin cumpleaños
+                            </div>
+                        }
+                    </div>
+                </div>
+            </div>
+        </div>
     </div>
 </div>
 
@@ -175,51 +229,142 @@
         min-height: 200px;
     }
 
-    .tareas-list { display: flex; flex-direction: column; gap: 0; min-height: 40px; }
+    .tareas-list {
+        display: flex;
+        flex-direction: column;
+        gap: 0;
+        min-height: 40px;
+    }
 
     .tarea-item {
-        display: flex; align-items: center; justify-content: space-between;
-        padding: 10px 0; border-bottom: 0.5px solid var(--color-border-tertiary);
-        gap: 0.75rem; transition: background 0.15s; cursor: grab;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        padding: 10px 0;
+        border-bottom: 0.5px solid var(--color-border-tertiary);
+        gap: 0.75rem;
+        transition: background 0.15s;
+        cursor: grab;
     }
-    .tarea-item:active { cursor: grabbing; }
-    .tarea-item:last-child { border-bottom: none; }
-    .tarea-item:hover { background: rgba(26, 58, 92, 0.03); }
 
-    .tareas-list[data-type="specific"] .drag-handle { display: none; }
-    .tareas-list[data-type="specific"] .tarea-item { cursor: default; }
+        .tarea-item:active {
+            cursor: grabbing;
+        }
+
+        .tarea-item:last-child {
+            border-bottom: none;
+        }
+
+        .tarea-item:hover {
+            background: rgba(26, 58, 92, 0.03);
+        }
+
+    .tareas-list[data-type="specific"] .drag-handle {
+        display: none;
+    }
+
+    .tareas-list[data-type="specific"] .tarea-item {
+        cursor: default;
+    }
 
     .drag-handle {
-        display: flex; align-items: center; justify-content: center;
-        width: 18px; height: 18px; color: var(--color-text-tertiary);
-        cursor: grab; flex-shrink: 0;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        width: 18px;
+        height: 18px;
+        color: var(--color-text-tertiary);
+        cursor: grab;
+        flex-shrink: 0;
     }
-    .drag-handle:active { cursor: grabbing; }
 
-    .tarea-content { flex: 1; min-width: 0; }
-    .tarea-header { display: flex; align-items: center; gap: 8px; margin-bottom: 4px; }
-    .tarea-nombre { font-size: 13px; font-weight: 500; color: var(--color-text-primary); }
+        .drag-handle:active {
+            cursor: grabbing;
+        }
+
+    .tarea-content {
+        flex: 1;
+        min-width: 0;
+    }
+
+    .tarea-header {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        margin-bottom: 4px;
+    }
+
+    .tarea-nombre {
+        font-size: 13px;
+        font-weight: 500;
+        color: var(--color-text-primary);
+    }
+
     .tarea-tipo {
-        font-size: 10px; background: var(--color-background-secondary);
-        color: var(--color-text-secondary); padding: 1px 6px;
-        border-radius: 99px; white-space: nowrap;
+        font-size: 10px;
+        background: var(--color-background-secondary);
+        color: var(--color-text-secondary);
+        padding: 1px 6px;
+        border-radius: 99px;
+        white-space: nowrap;
     }
-    .tarea-details { display: flex; gap: 8px; font-size: 10px; color: var(--color-text-tertiary); flex-wrap: wrap; }
-    .tarea-fecha, .tarea-hora, .tarea-diasemana, .tarea-persona { display: flex; align-items: center; gap: 3px; }
 
-    .tarea-actions { display: flex; gap: 6px; flex-shrink: 0; }
-    .btn-action {
-        display: inline-flex; align-items: center; gap: 3px;
-        padding: 4px 8px; font-size: 11px; border-radius: var(--border-radius-md);
-        cursor: pointer; text-decoration: none; transition: all 0.15s;
-        border: 0.5px solid; background: transparent; font-family: var(--font-sans);
+    .tarea-details {
+        display: flex;
+        gap: 8px;
+        font-size: 10px;
+        color: var(--color-text-tertiary);
+        flex-wrap: wrap;
     }
-    .btn-edit { color: #1a3a5c; border-color: #1a3a5c; }
-    .btn-edit:hover { background: rgba(26, 58, 92, 0.1); }
-    .btn-delete { color: #dc3545; border-color: #dc3545; }
-    .btn-delete:hover { background: rgba(220, 53, 69, 0.1); }
+
+    .tarea-fecha, .tarea-hora, .tarea-diasemana, .tarea-persona {
+        display: flex;
+        align-items: center;
+        gap: 3px;
+    }
+
+    .tarea-actions {
+        display: flex;
+        gap: 6px;
+        flex-shrink: 0;
+    }
+
+    .btn-action {
+        display: inline-flex;
+        align-items: center;
+        gap: 3px;
+        padding: 4px 8px;
+        font-size: 11px;
+        border-radius: var(--border-radius-md);
+        cursor: pointer;
+        text-decoration: none;
+        transition: all 0.15s;
+        border: 0.5px solid;
+        background: transparent;
+        font-family: var(--font-sans);
+    }
+
+    .btn-edit {
+        color: #1a3a5c;
+        border-color: #1a3a5c;
+    }
+
+        .btn-edit:hover {
+            background: rgba(26, 58, 92, 0.1);
+        }
+
+    .btn-delete {
+        color: #dc3545;
+        border-color: #dc3545;
+    }
+
+        .btn-delete:hover {
+            background: rgba(220, 53, 69, 0.1);
+        }
 
     @@media (max-width: 900px) {
-        .listar-main { grid-template-columns: 1fr; }
+        .listar-main {
+            grid-template-columns: 1fr;
+        }
     }
 </style>

@@ -11,6 +11,8 @@ namespace CheckList.Core.Utils
                 TipoTarea.Daily => "Diaria",
                 TipoTarea.Specific => "Específica",
                 TipoTarea.Weekly => "Semanal",
+                TipoTarea.Event => "Evento",
+                TipoTarea.Birthday => "Cumpleaños",
                 _ => "Desconocida"
             };
         }

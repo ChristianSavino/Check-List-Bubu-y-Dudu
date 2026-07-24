@@ -5,6 +5,7 @@ namespace CheckList.Core.Tarea.Domain
         Daily,
         Specific,
         Weekly,
-        Event
+        Event,
+        Birthday
     }
 }

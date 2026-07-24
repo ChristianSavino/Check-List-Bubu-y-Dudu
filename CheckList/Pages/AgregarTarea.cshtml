@@ -34,6 +34,7 @@
                             <option value="specific">Tarea Específica (con fecha)</option>
                             <option value="event">Evento con duración (vacaciones, etc.)</option>
                             <option value="weekly">Tarea Semanal (con día de semana)</option>
+                            <option value="birthday">Cumpleaños (se repite cada año)</option>
                         </select>
                     </div>
 
@@ -69,7 +70,7 @@
                         <span class="text-danger" asp-validation-for="DiaSemana"></span>
                     </div>
 
-                    <div class="form-group" style="margin-bottom: 1rem;">
+                    <div id="persona-wrap" class="form-group" style="margin-bottom: 1rem;">
                         <label class="form-label" for="persona">Persona (opcional)</label>
                         <select class="form-control" id="persona" asp-for="Persona">
                             <option value="">Sin asignar</option>
@@ -105,24 +106,37 @@
         const fechaWrap = document.getElementById('fecha-wrap');
         const horaWrap = document.getElementById('hora-wrap');
         const diasemanaWrap = document.getElementById('diasemana-wrap');
+        const fechafinWrap = document.getElementById('fechafin-wrap');
+        const personaWrap = document.getElementById('persona-wrap');
+
+        // Mostrar persona para todos excepto cumpleaños
+        personaWrap.style.display = tipo === 'birthday' ? 'none' : 'block';
 
         if (tipo === 'specific') {
             fechaWrap.style.display = 'block';
             horaWrap.style.display = 'block';
             diasemanaWrap.style.display = 'none';
+            fechafinWrap.style.display = 'none';
         } else if (tipo === 'event') {
             fechaWrap.style.display = 'block';
             horaWrap.style.display = 'none';
             diasemanaWrap.style.display = 'none';
-            document.getElementById('fechafin-wrap').style.display = 'block';
+            fechafinWrap.style.display = 'block';
+        } else if (tipo === 'birthday') {
+            fechaWrap.style.display = 'block';
+            horaWrap.style.display = 'none';
+            diasemanaWrap.style.display = 'none';
+            fechafinWrap.style.display = 'none';
         } else if (tipo === 'weekly') {
             fechaWrap.style.display = 'none';
             horaWrap.style.display = 'none';
             diasemanaWrap.style.display = 'block';
+            fechafinWrap.style.display = 'none';
         } else {
             fechaWrap.style.display = 'none';
             horaWrap.style.display = 'none';
             diasemanaWrap.style.display = 'none';
+            fechafinWrap.style.display = 'none';
         }
     }
 

@@ -24,7 +24,7 @@ namespace CheckList.Core.Tarea.Domain
             var hoy = referenceDate ?? DateTime.Now.Date;
 
             int diasAtraso = 0;
-            if (entity.Tipo != TipoTarea.Event && entity.Fecha.HasValue
+            if (entity.Tipo != TipoTarea.Event && entity.Tipo != TipoTarea.Birthday && entity.Fecha.HasValue
                 && entity.Fecha.Value.Date < hoy && !entity.Completada)
                 diasAtraso = (hoy - entity.Fecha.Value.Date).Days;
 
@@ -41,7 +41,7 @@ namespace CheckList.Core.Tarea.Domain
                 Fecha = entity.Fecha?.ToString(TareaConstants.DATE_FORMAT),
                 DiaSemana = TareaStringConverter.DayOfWeekToString(entity.DiaSemana),
                 DiasAtraso = diasAtraso,
-                EsEvento = entity.Tipo == TipoTarea.Event
+                EsEvento = entity.Tipo == TipoTarea.Event || entity.Tipo == TipoTarea.Birthday
             };
         }
 
@@ -61,6 +61,7 @@ namespace CheckList.Core.Tarea.Domain
         /// <summary>
         /// Genera DTOs de eventos activos para un día específico.
         /// Un evento de 10 días genera "Vacaciones (3/10)" para el día 3.
+        /// Para cumpleaños, solo muestra el nombre sin contador.
         /// </summary>
         public static List<TareaDto> MapEventosParaDia(IEnumerable<TareaEntity> eventos, DateTime dia)
         {
@@ -68,7 +69,35 @@ namespace CheckList.Core.Tarea.Domain
 
             foreach (var ev in eventos)
             {
-                if (ev.Tipo != TipoTarea.Event || !ev.Fecha.HasValue || !ev.FechaFin.HasValue)
+                if ((ev.Tipo != TipoTarea.Event && ev.Tipo != TipoTarea.Birthday) || !ev.Fecha.HasValue)
+                    continue;
+
+                // Para cumpleaños, comparar solo mes y día
+                if (ev.Tipo == TipoTarea.Birthday)
+                {
+                    var diaDelCumpleaños = ev.Fecha.Value.Date;
+                    if (diaDelCumpleaños.Month == dia.Date.Month && diaDelCumpleaños.Day == dia.Date.Day)
+                    {
+                        result.Add(new TareaDto
+                        {
+                            Id = ev.Id,
+                            Nombre = ev.Nombre,
+                            Label = ev.Nombre,
+                            Completada = false,
+                            Hora = "",
+                            Persona = "", // Sin persona para cumpleaños
+                            TipoTarea = TareaStringConverter.TipoTareaToString(ev.Tipo),
+                            TipoTareaLabel = TareaStringConverter.GetTipoTareaLabel(ev.Tipo),
+                            Fecha = ev.Fecha?.ToString(TareaConstants.DATE_FORMAT),
+                            EsEvento = true,
+                            EventoProgreso = ""
+                        });
+                    }
+                    continue;
+                }
+
+                // Para eventos normales, verificar rango de fechas
+                if (!ev.FechaFin.HasValue)
                     continue;
 
                 var inicio = ev.Fecha.Value.Date;

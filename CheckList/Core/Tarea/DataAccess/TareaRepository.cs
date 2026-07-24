@@ -20,6 +20,7 @@ namespace CheckList.Core.Tarea.DataAccess
         Task<List<TareaEntity>> GetTareasSemanalesCompletadasAsync(DateTime hoy);
         Task<List<TareaEntity>> GetTareasEspecificasCompletadasAntesDeAsync(DateTime fecha);
         Task<List<TareaEntity>> GetEventosActivosEnFechaAsync(DateTime fecha);
+        Task<List<TareaEntity>> GetCumpleanosActivosEnFechaAsync(DateTime fecha);
         Task<List<TareaEntity>> GetEventosPasadosAsync(DateTime hoy);
     }
 
@@ -194,6 +195,18 @@ namespace CheckList.Core.Tarea.DataAccess
                          && t.Fecha.HasValue && t.FechaFin.HasValue
                          && t.Fecha.Value.Date <= fechaDia
                          && t.FechaFin.Value.Date >= fechaDia)
+                .OrderBy(t => t.Fecha)
+                .ToListAsync();
+        }
+
+        public async Task<List<TareaEntity>> GetCumpleanosActivosEnFechaAsync(DateTime fecha)
+        {
+            var fechaDia = fecha.Date;
+            return await _context.Tareas
+                .Where(t => t.Tipo == TipoTarea.Birthday
+                         && t.Fecha.HasValue
+                         && t.Fecha.Value.Month == fechaDia.Month
+                         && t.Fecha.Value.Day == fechaDia.Day)
                 .OrderBy(t => t.Fecha)
                 .ToListAsync();
         }

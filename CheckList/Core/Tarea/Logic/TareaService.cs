@@ -18,6 +18,7 @@ namespace CheckList.Core.Tarea.Logic
         Task ToggleTareaAsync(int id);
         Task ReordenarTareasAsync(List<int> ids);
         Task<List<TareaEntity>> GetEventosActivosEnFechaAsync(DateTime fecha);
+        Task<List<TareaEntity>> GetCumpleanosActivosEnFechaAsync(DateTime fecha);
     }
 
     public class TareaService : ITareaService
@@ -64,6 +65,9 @@ namespace CheckList.Core.Tarea.Logic
             if (tarea.Tipo == TipoTarea.Event && (!tarea.Fecha.HasValue || !tarea.FechaFin.HasValue))
                 throw new ArgumentException("Los eventos requieren fecha de inicio y fin");
 
+            if (tarea.Tipo == TipoTarea.Birthday && !tarea.Fecha.HasValue)
+                throw new ArgumentException("Los cumpleaños requieren una fecha");
+
             await _repository.AddTareaAsync(tarea);
         }
 
@@ -77,9 +81,12 @@ namespace CheckList.Core.Tarea.Logic
 
             if (tarea.Tipo == TipoTarea.Weekly && !tarea.DiaSemana.HasValue)
                 throw new ArgumentException("Las tareas semanales requieren un día de la semana");
-            
+
             if (tarea.Tipo == TipoTarea.Event && (!tarea.Fecha.HasValue || !tarea.FechaFin.HasValue))
                 throw new ArgumentException("Los eventos requieren fecha de inicio y fin");
+
+            if (tarea.Tipo == TipoTarea.Birthday && !tarea.Fecha.HasValue)
+                throw new ArgumentException("Los cumpleaños requieren una fecha");
 
             await _repository.UpdateTareaAsync(tarea);
         }
@@ -112,5 +119,8 @@ namespace CheckList.Core.Tarea.Logic
 
         public async Task<List<TareaEntity>> GetEventosActivosEnFechaAsync(DateTime fecha)
             => await _repository.GetEventosActivosEnFechaAsync(fecha);
+
+        public async Task<List<TareaEntity>> GetCumpleanosActivosEnFechaAsync(DateTime fecha)
+            => await _repository.GetCumpleanosActivosEnFechaAsync(fecha);
     }
 }

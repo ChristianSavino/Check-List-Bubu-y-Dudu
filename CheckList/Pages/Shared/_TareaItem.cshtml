@@ -20,7 +20,14 @@
                     @DateTime.Parse(Model.Fecha).ToString("dd/MM/yyyy") - @DateTime.Parse(Model.FechaFin).ToString("dd/MM/yyyy")
                 </span>
             }
-            @if (Model.Tipo != "Event" && !string.IsNullOrEmpty(Model.Fecha))
+            @if (Model.Tipo == "Birthday" && !string.IsNullOrEmpty(Model.Fecha))
+            {
+                <span class="tarea-fecha">
+                    <svg width="10" height="10" viewBox="0 0 10 10" fill="none"><rect x="0.5" y="1.5" width="9" height="8" rx="1" stroke="currentColor" stroke-width="0.8" /><path d="M3 0.5v2M7 0.5v2M0.5 4h9" stroke="currentColor" stroke-width="0.8" stroke-linecap="round" /></svg>
+                    @DateTime.Parse(Model.Fecha).ToString("dd/MM")
+                </span>
+            }
+            @if (Model.Tipo != "Event" && Model.Tipo != "Birthday" && !string.IsNullOrEmpty(Model.Fecha))
             {
                 <span class="tarea-fecha">
                     <svg width="10" height="10" viewBox="0 0 10 10" fill="none"><rect x="0.5" y="1.5" width="9" height="8" rx="1" stroke="currentColor" stroke-width="0.8" /><path d="M3 0.5v2M7 0.5v2M0.5 4h9" stroke="currentColor" stroke-width="0.8" stroke-linecap="round" /></svg>

@@ -32,71 +32,142 @@ namespace CheckList.Pages
                 MesInicio = Año == AñoActual ? DateTime.Now.Month : 1;
 
                 var hoy = DateTime.Now.Date;
-
-                // Cargar tareas específicas
                 var todasLasTareas = await _tareaService.GetTodasLasTareasAsync();
-                var tareasDelAño = todasLasTareas
-                    .Where(t => t.Tipo == TipoTarea.Specific
-                             && t.Fecha.HasValue
-                             && t.Fecha.Value.Year == Año
-                             && t.Fecha.Value.Month >= MesInicio)
-                    .ToList();
 
-                foreach (var tarea in tareasDelAño)
-                {
-                    var key = tarea.Fecha!.Value.ToString("yyyy-MM-dd");
-                    if (!EventosPorDia.ContainsKey(key))
-                        EventosPorDia[key] = new List<EventoCalendario>();
+                // 1. TAREAS ESPECÍFICAS - Año exacto
+                CargarTareasEspecificas(todasLasTareas, hoy, Año, MesInicio);
 
-                    EventosPorDia[key].Add(new EventoCalendario
-                    {
-                        Nombre = tarea.Nombre,
-                        Hora = tarea.Hora ?? "",
-                        Persona = tarea.Persona ?? "",
-                        Completada = tarea.Completada,
-                        DiasRestantes = (tarea.Fecha.Value.Date - hoy).Days
-                    });
-                }
+                // 2. EVENTOS - Rango de fechas
+                CargarEventos(todasLasTareas, hoy, Año, MesInicio);
 
-                // Eventos con duración
-                var eventosDelAño = todasLasTareas
-                    .Where(t => t.Tipo == TipoTarea.Specific == false
-                             && t.Tipo == TipoTarea.Event
-                             && t.Fecha.HasValue && t.FechaFin.HasValue
-                             && ((t.Fecha.Value.Year == Año) || (t.FechaFin.Value.Year == Año)))
-                    .ToList();
+                // 3. CUMPLEAÑOS - Se repiten cada año (solo mes/día)
+                CargarCumpleaños(todasLasTareas, hoy, Año, MesInicio);
 
-                foreach (var ev in eventosDelAño)
-                {
-                    var inicio = ev.Fecha!.Value.Date;
-                    var fin = ev.FechaFin!.Value.Date;
-                    var totalDias = (fin - inicio).Days + 1;
-
-                    for (var d = inicio; d <= fin; d = d.AddDays(1))
-                    {
-                        if (d.Year != Año || d.Month < MesInicio) continue;
-                        var key = d.ToString("yyyy-MM-dd");
-                        if (!EventosPorDia.ContainsKey(key))
-                            EventosPorDia[key] = new List<EventoCalendario>();
-
-                        var diaNum = (d - inicio).Days + 1;
-                        EventosPorDia[key].Add(new EventoCalendario
-                        {
-                            Nombre = $"{ev.Nombre} ({diaNum}/{totalDias})",
-                            Persona = ev.Persona ?? "",
-                            Completada = false,
-                            DiasRestantes = (d - hoy).Days
-                        });
-                    }
-                }
-
-                // Feriados: si el año no está en memoria, cargarlo (ej: navegaron a año futuro)
+                // Feriados
                 await _feriadoService.CargarFeriadosAsync(Año);
                 FeriadosPorDia = _feriadoService.GetFeriados(Año);
             }
             catch (Exception ex)
             {
                 _logger.LogError(ex, "Error al cargar calendario");
+            }
+        }
+
+        private void CargarTareasEspecificas(List<TareaEntity> tareas, DateTime hoy, int año, int mesInicio)
+        {
+            var tareasEspecificas = tareas
+                .Where(t => t.Tipo == TipoTarea.Specific
+                         && t.Fecha.HasValue
+                         && t.Fecha.Value.Year == año
+                         && t.Fecha.Value.Month >= mesInicio)
+                .ToList();
+
+            foreach (var tarea in tareasEspecificas)
+            {
+                var key = tarea.Fecha!.Value.ToString("yyyy-MM-dd");
+                if (!EventosPorDia.ContainsKey(key))
+                    EventosPorDia[key] = new List<EventoCalendario>();
+
+                EventosPorDia[key].Add(new EventoCalendario
+                {
+                    Nombre = tarea.Nombre,
+                    Hora = tarea.Hora ?? "",
+                    Persona = tarea.Persona ?? "",
+                    Completada = tarea.Completada,
+                    DiasRestantes = (tarea.Fecha.Value.Date - hoy).Days
+                });
+            }
+        }
+
+        private void CargarEventos(List<TareaEntity> tareas, DateTime hoy, int año, int mesInicio)
+        {
+            var eventos = tareas
+                .Where(t => t.Tipo == TipoTarea.Event
+                         && t.Fecha.HasValue && t.FechaFin.HasValue
+                         && ((t.Fecha.Value.Year == año) || (t.FechaFin.Value.Year == año)))
+                .ToList();
+
+            foreach (var ev in eventos)
+            {
+                var inicio = ev.Fecha!.Value.Date;
+                var fin = ev.FechaFin!.Value.Date;
+                var totalDias = (fin - inicio).Days + 1;
+
+                for (var d = inicio; d <= fin; d = d.AddDays(1))
+                {
+                    if (d.Year != año || d.Month < mesInicio) continue;
+
+                    var key = d.ToString("yyyy-MM-dd");
+                    if (!EventosPorDia.ContainsKey(key))
+                        EventosPorDia[key] = new List<EventoCalendario>();
+
+                    var diaNum = (d - inicio).Days + 1;
+                    EventosPorDia[key].Add(new EventoCalendario
+                    {
+                        Nombre = $"{ev.Nombre} ({diaNum}/{totalDias})",
+                        Persona = ev.Persona ?? "",
+                        Completada = false,
+                        DiasRestantes = (d - hoy).Days
+                    });
+                }
+            }
+        }
+
+        private void CargarCumpleaños(List<TareaEntity> tareas, DateTime hoy, int año, int mesInicio)
+        {
+            var cumpleaños = tareas
+                .Where(t => t.Tipo == TipoTarea.Birthday && t.Fecha.HasValue)
+                .ToList();
+
+            foreach (var cumple in cumpleaños)
+            {
+                var diaOriginal = cumple.Fecha!.Value;
+                var mes = diaOriginal.Month;
+                var dia = diaOriginal.Day;
+
+                // Manejar 29 de febrero en años no bisiestos
+                try
+                {
+                    var fechaCumpleEsteAño = new DateTime(año, mes, dia);
+
+                    if (fechaCumpleEsteAño.Month >= mesInicio)
+                    {
+                        var key = fechaCumpleEsteAño.ToString("yyyy-MM-dd");
+                        if (!EventosPorDia.ContainsKey(key))
+                            EventosPorDia[key] = new List<EventoCalendario>();
+
+                        EventosPorDia[key].Add(new EventoCalendario
+                        {
+                            Nombre = $"🎂 {cumple.Nombre}",
+                            Persona = "",
+                            Completada = false,
+                            DiasRestantes = (fechaCumpleEsteAño - hoy).Days
+                        });
+                    }
+                }
+                catch (ArgumentOutOfRangeException)
+                {
+                    // Si es 29/02 en año no bisiesto, mostrar el 28/02
+                    try
+                    {
+                        var fechaCumpleEsteAño = new DateTime(año, mes, dia - 1);
+                        if (fechaCumpleEsteAño.Month >= mesInicio)
+                        {
+                            var key = fechaCumpleEsteAño.ToString("yyyy-MM-dd");
+                            if (!EventosPorDia.ContainsKey(key))
+                                EventosPorDia[key] = new List<EventoCalendario>();
+
+                            EventosPorDia[key].Add(new EventoCalendario
+                            {
+                                Nombre = $"🎂 {cumple.Nombre}",
+                                Persona = "",
+                                Completada = false,
+                                DiasRestantes = (fechaCumpleEsteAño - hoy).Days
+                            });
+                        }
+                    }
+                    catch { /* Ignorar si no se puede crear la fecha */ }
+                }
             }
         }
     }

@@ -390,3 +390,14 @@
     border-radius: var(--border-radius-lg);
     overflow: hidden;
 }
+
+/* Cumpleaños - icono especial */
+.birthday-item .event-icon {
+    font-size: 18px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 20px;
+    height: 20px;
+}
+

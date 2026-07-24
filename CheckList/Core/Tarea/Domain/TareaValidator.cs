@@ -61,6 +61,11 @@ namespace CheckList.Core.Tarea.Domain
                         }
                     }
                     break;
+
+                case TipoTarea.Birthday:
+                    if (string.IsNullOrWhiteSpace(fecha))
+                        errors.Add(new ValidationError("Fecha", "La fecha del cumpleaños es obligatoria"));
+                    break;
             }
 
             return errors;
@@ -90,6 +95,10 @@ namespace CheckList.Core.Tarea.Domain
                         errors.Add(new ValidationError("FechaFin", "Los eventos requieren fecha de fin"));
                     if (tarea.Fecha.HasValue && tarea.FechaFin.HasValue && tarea.FechaFin < tarea.Fecha)
                         errors.Add(new ValidationError("FechaFin", "La fecha de fin no puede ser anterior a la de inicio"));
+                    break;
+                case TipoTarea.Birthday:
+                    if (!tarea.Fecha.HasValue)
+                        errors.Add(new ValidationError("Fecha", "Los cumpleaños requieren una fecha"));
                     break;
             }
 

@@ -43,15 +43,9 @@ namespace CheckList.Pages
                             : "",
                         Orden = t.Orden
                     })
-                    .OrderBy(t => t.Tipo == "Specific" ? 1 : 0)
-                    .ThenBy(t =>
-                        t.Tipo == "Specific" && !string.IsNullOrEmpty(t.Fecha)
-                            ? DateTime.Parse(t.Fecha)
-                            : DateTime.MinValue)
-                    .ThenBy(t =>
-                        t.Tipo == "Specific"
-                            ? t.Hora
-                            : "")
+                    .OrderBy(t => t.Tipo)
+                    .ThenBy(t => t.Fecha)
+                    .ThenBy(t => t.Hora)
                     .ToList();
             }
             catch (Exception ex)
