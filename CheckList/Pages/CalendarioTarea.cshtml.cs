@@ -41,7 +41,7 @@ namespace CheckList.Pages
                 CargarEventos(todasLasTareas, hoy, Año, MesInicio);
 
                 // 3. CUMPLEAÑOS - Se repiten cada año (solo mes/día)
-                CargarCumpleaños(todasLasTareas, hoy, Año, MesInicio);
+                CargarCumpleaños(todasLasTareas, hoy, Año);
 
                 // Feriados
                 await _feriadoService.CargarFeriadosAsync(Año);
@@ -113,7 +113,7 @@ namespace CheckList.Pages
             }
         }
 
-        private void CargarCumpleaños(List<TareaEntity> tareas, DateTime hoy, int año, int mesInicio)
+        private void CargarCumpleaños(List<TareaEntity> tareas, DateTime hoy, int año)
         {
             var cumpleaños = tareas
                 .Where(t => t.Tipo == TipoTarea.Birthday && t.Fecha.HasValue)
@@ -125,49 +125,35 @@ namespace CheckList.Pages
                 var mes = diaOriginal.Month;
                 var dia = diaOriginal.Day;
 
+                var fechaCumpleEsteAño = DateTime.Now;
+
                 // Manejar 29 de febrero en años no bisiestos
                 try
                 {
-                    var fechaCumpleEsteAño = new DateTime(año, mes, dia);
-
-                    if (fechaCumpleEsteAño.Month >= mesInicio)
-                    {
-                        var key = fechaCumpleEsteAño.ToString("yyyy-MM-dd");
-                        if (!EventosPorDia.ContainsKey(key))
-                            EventosPorDia[key] = new List<EventoCalendario>();
-
-                        EventosPorDia[key].Add(new EventoCalendario
-                        {
-                            Nombre = $"🎂 {cumple.Nombre}",
-                            Persona = "",
-                            Completada = false,
-                            DiasRestantes = (fechaCumpleEsteAño - hoy).Days
-                        });
-                    }
+                    fechaCumpleEsteAño = new DateTime(año, mes, dia);
                 }
                 catch (ArgumentOutOfRangeException)
                 {
-                    // Si es 29/02 en año no bisiesto, mostrar el 28/02
-                    try
-                    {
-                        var fechaCumpleEsteAño = new DateTime(año, mes, dia - 1);
-                        if (fechaCumpleEsteAño.Month >= mesInicio)
-                        {
-                            var key = fechaCumpleEsteAño.ToString("yyyy-MM-dd");
-                            if (!EventosPorDia.ContainsKey(key))
-                                EventosPorDia[key] = new List<EventoCalendario>();
-
-                            EventosPorDia[key].Add(new EventoCalendario
-                            {
-                                Nombre = $"🎂 {cumple.Nombre}",
-                                Persona = "",
-                                Completada = false,
-                                DiasRestantes = (fechaCumpleEsteAño - hoy).Days
-                            });
-                        }
-                    }
-                    catch { /* Ignorar si no se puede crear la fecha */ }
+                    fechaCumpleEsteAño = new DateTime(año, mes, dia - 1);
                 }
+                catch (Exception) { continue; }
+
+                if(fechaCumpleEsteAño < DateTime.Now)
+                {
+                    continue;
+                }
+
+                var key = fechaCumpleEsteAño.ToString("yyyy-MM-dd");
+                if (!EventosPorDia.ContainsKey(key))
+                    EventosPorDia[key] = new List<EventoCalendario>();
+
+                EventosPorDia[key].Add(new EventoCalendario
+                {
+                    Nombre = $"🎂 {cumple.Nombre}",
+                    Persona = "",
+                    Completada = false,
+                    DiasRestantes = (fechaCumpleEsteAño - hoy).Days
+                });
             }
         }
     }
