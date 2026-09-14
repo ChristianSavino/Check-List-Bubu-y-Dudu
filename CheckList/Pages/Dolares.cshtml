@@ -184,8 +184,8 @@
                         <div class="number-input">
                             <input type="number"
                                    id="escala-input"
-                                   value="50"
-                                   min="1"
+                                   value="0"
+                                   min="0"
                                    step="1"
                                    oninput="generarEscala()" />
                         </div>
@@ -291,25 +291,39 @@
             document.getElementById('dolares-input').value
         );
 
-        const escala = parseFloat(
+        let escala = parseFloat(
             document.getElementById('escala-input').value
         );
 
         const contenedor =
             document.getElementById('escala-resultados');
 
+        if(isNaN(escala)) {
+            escala = 0
+        }
 
-        if (!dolares || dolares <= 0 || !escala || escala <= 0) {
-
+        if (
+            dolares === '' ||
+            isNaN(dolares) ||
+            dolares <= 0 ||
+            escala < 0
+        ) {
             contenedor.innerHTML = '';
             return;
         }
 
 
         let html = '';
+        let escalaMinima = -5;
+        let escalaMaxima = 5;
+
+        if(escala == 0) {
+            escalaMinima = 0;
+            escalaMaxima = 0;
+        }
 
 
-        for (let i = -5; i <= 5; i++) {
+        for (let i = escalaMinima; i <= escalaMaxima; i++) {
 
             const monto = dolares + (escala * i);
 
