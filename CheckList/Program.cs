@@ -1,4 +1,6 @@
 using CheckList.Core.Compra.DataAccess;
+using CheckList.Core.Dolares.Domain;
+using CheckList.Core.Dolares.Logic;
 using CheckList.Core.Infrastructure;
 using CheckList.Core.Persona.DataAccess;
 using CheckList.Core.Tarea.DataAccess;
@@ -37,6 +39,10 @@ builder.Services.AddScoped<ITareaCleanupService, TareaCleanupService>();
 builder.Services.AddSingleton<FeriadoService>();
 builder.Services.AddSingleton<IFeriadoService>(sp => sp.GetRequiredService<FeriadoService>());
 builder.Services.AddHttpClient<FeriadoService>();
+
+builder.Services.AddSingleton<DolaresService>();
+builder.Services.AddSingleton<IDolaresService>(sp => sp.GetRequiredService<DolaresService>());
+builder.Services.AddHttpClient<DolaresService>();
 
 builder.Services.AddHostedService<PortForwardingService>();
 

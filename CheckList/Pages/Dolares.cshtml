@@ -1,0 +1,364 @@
+﻿@page
+@model CheckList.Pages.DolaresModel
+@{
+    ViewData["Title"] = "Dólares";
+}
+
+<link rel="stylesheet" href="~/css/checklist.css" asp-append-version="true" />
+
+<div class="wrapper">
+    <div class="main cotizaciones-main">
+
+        <div class="cotizaciones-section">
+            <div class="col-header">
+                <svg width="13" height="13" viewBox="0 0 13 13" fill="none">
+                    <circle cx="6.5" cy="6.5" r="5.5"
+                            stroke="currentColor" stroke-width="1.1" />
+                    <path d="M6.5 3v7M4.5 5c0-1 1-1.5 2-1.5s2 .5 2 1.5-1 1.5-2 1.5-2 .5-2 1.5 1 1.5 2 1.5 2-.5 2-1.5"
+                          stroke="currentColor"
+                          stroke-width="0.9"
+                          stroke-linecap="round" />
+                </svg>
+                Cotizaciones
+            </div>
+
+            <div class="card cotizaciones-card">
+
+                <div class="cotizacion-grid">
+
+                    <div class="cotizacion-box">
+                        <div class="cotizacion-title">
+                            <span class="cotizacion-dot oficial"></span>
+                            Oficial
+                        </div>
+
+                        <div class="cotizacion-values">
+                            <div class="cotizacion-value">
+                                <span>Compra</span>
+                                <strong id="oficial-compra">
+                                    $ @Model.Cotizacion.OficialCompra.ToString("N2")
+                                </strong>
+                            </div>
+
+                            <div class="cotizacion-value">
+                                <span>Venta</span>
+                                <strong id="oficial-venta">
+                                    $ @Model.Cotizacion.OficialVenta.ToString("N2")
+                                </strong>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="cotizacion-box">
+                        <div class="cotizacion-title">
+                            <span class="cotizacion-dot blue"></span>
+                            Blue
+                        </div>
+
+                        <div class="cotizacion-values">
+                            <div class="cotizacion-value">
+                                <span>Compra</span>
+                                <strong id="blue-compra">
+                                    $ @Model.Cotizacion.BlueCompra.ToString("N2")
+                                </strong>
+                            </div>
+
+                            <div class="cotizacion-value">
+                                <span>Venta</span>
+                                <strong id="blue-venta">
+                                    $ @Model.Cotizacion.BlueVenta.ToString("N2")
+                                </strong>
+                            </div>
+                        </div>
+                    </div>
+
+                </div>
+
+                <div class="cotizacion-update">
+                    Última actualización:
+                    <span id="ultima-actualizacion">@Model.Cotizacion.FechaActualizacion.ToString("dd/MM/yyyy HH:mm")</span>
+                </div>
+
+            </div>
+        </div>
+
+        <div class="cotizaciones-section">
+
+            <div class="col-header">
+                <svg width="13" height="13" viewBox="0 0 13 13" fill="none">
+                    <path d="M2 4h9M8 1l3 3-3 3"
+                          stroke="currentColor"
+                          stroke-width="1.1"
+                          stroke-linecap="round"
+                          stroke-linejoin="round" />
+                    <path d="M11 9H2M5 6l-3 3 3 3"
+                          stroke="currentColor"
+                          stroke-width="1.1"
+                          stroke-linecap="round"
+                          stroke-linejoin="round" />
+                </svg>
+                Pesos → Dólares
+            </div>
+
+            <div class="card conversor-card">
+
+                <div class="input-group">
+                    <label for="pesos-input">Pesos</label>
+
+                    <div class="money-input">
+                        <span>$</span>
+                        <input type="number"
+                               id="pesos-input"
+                               placeholder="1.000.000"
+                               min="0"
+                               step="0.01"
+                               oninput="calcularPesosADolares()" />
+                    </div>
+                </div>
+
+
+                <div class="resultado-grid">
+
+                    <div class="resultado-item">
+                        <div class="resultado-label">
+                            <span class="cotizacion-dot oficial"></span>
+                            Oficial · Compra
+                        </div>
+                        <strong id="pesos-oficial-compra">USD 0,00</strong>
+                    </div>
+
+                    <div class="resultado-item">
+                        <div class="resultado-label">
+                            <span class="cotizacion-dot oficial"></span>
+                            Oficial · Venta
+                        </div>
+                        <strong id="pesos-oficial-venta">USD 0,00</strong>
+                    </div>
+
+                    <div class="resultado-item">
+                        <div class="resultado-label">
+                            <span class="cotizacion-dot blue"></span>
+                            Blue · Compra
+                        </div>
+                        <strong id="pesos-blue-compra">USD 0,00</strong>
+                    </div>
+
+                    <div class="resultado-item">
+                        <div class="resultado-label">
+                            <span class="cotizacion-dot blue"></span>
+                            Blue · Venta
+                        </div>
+                        <strong id="pesos-blue-venta">USD 0,00</strong>
+                    </div>
+
+                </div>
+
+            </div>
+        </div>
+
+        <div class="cotizaciones-section">
+
+            <div class="col-header">
+                <svg width="13" height="13" viewBox="0 0 13 13" fill="none">
+                    <path d="M2 4h9M8 1l3 3-3 3"
+                          stroke="currentColor"
+                          stroke-width="1.1"
+                          stroke-linecap="round"
+                          stroke-linejoin="round" />
+                    <path d="M11 9H2M5 6l-3 3 3 3"
+                          stroke="currentColor"
+                          stroke-width="1.1"
+                          stroke-linecap="round"
+                          stroke-linejoin="round" />
+                </svg>
+                Dólares → Pesos
+            </div>
+
+            <div class="card conversor-card">
+
+                <div class="conversion-inputs">
+
+                    <div class="input-group">
+                        <label for="escala-input">Escala</label>
+
+                        <div class="number-input">
+                            <input type="number"
+                                   id="escala-input"
+                                   value="50"
+                                   min="1"
+                                   step="1"
+                                   oninput="generarEscala()" />
+                        </div>
+                    </div>
+
+                    <div class="input-group">
+                        <label for="dolares-input">Dólares</label>
+
+                        <div class="money-input">
+                            <span>USD</span>
+                            <input type="number"
+                                   id="dolares-input"
+                                   value="0"
+                                   min="0"
+                                   step="1"
+                                   oninput="generarEscala()" />
+                        </div>
+                    </div>
+
+                </div>
+
+                <div class="tabla-wrap">
+
+                    <div class="tabla-header">
+                        <div>Dólares</div>
+                        <div>Of. Compra</div>
+                        <div>Of. Venta</div>
+                        <div>Blue Compra</div>
+                        <div>Blue Venta</div>
+                    </div>
+
+                    <div id="escala-resultados"></div>
+
+                </div>
+
+            </div>
+        </div>
+
+    </div>
+</div>
+
+
+<script>
+    const cotizaciones = {
+        oficialCompra: @Model.Cotizacion.OficialCompra.ToString(System.Globalization.CultureInfo.InvariantCulture),
+        oficialVenta:  @Model.Cotizacion.OficialVenta.ToString(System.Globalization.CultureInfo.InvariantCulture),
+        blueCompra:    @Model.Cotizacion.BlueCompra.ToString(System.Globalization.CultureInfo.InvariantCulture),
+        blueVenta:     @Model.Cotizacion.BlueVenta.ToString(System.Globalization.CultureInfo.InvariantCulture)
+            };
+
+    function formatoPesos(valor) {
+
+        return '$ ' + valor.toLocaleString('es-AR', {
+            minimumFractionDigits: 2,
+            maximumFractionDigits: 2
+        });
+
+    }
+
+
+    function formatoDolares(valor) {
+
+        return 'USD ' + valor.toLocaleString('es-AR', {
+            minimumFractionDigits: 2,
+            maximumFractionDigits: 2
+        });
+
+    }
+
+    function calcularPesosADolares() {
+
+        const pesos = parseFloat(
+            document.getElementById('pesos-input').value
+        );
+
+        if (!pesos || pesos <= 0) {
+
+            document.getElementById('pesos-oficial-compra').textContent = 'USD 0,00';
+            document.getElementById('pesos-oficial-venta').textContent = 'USD 0,00';
+            document.getElementById('pesos-blue-compra').textContent = 'USD 0,00';
+            document.getElementById('pesos-blue-venta').textContent = 'USD 0,00';
+
+            return;
+        }
+
+
+        document.getElementById('pesos-oficial-compra').textContent =
+            formatoDolares(pesos / cotizaciones.oficialCompra);
+
+        document.getElementById('pesos-oficial-venta').textContent =
+            formatoDolares(pesos / cotizaciones.oficialVenta);
+
+        document.getElementById('pesos-blue-compra').textContent =
+            formatoDolares(pesos / cotizaciones.blueCompra);
+
+        document.getElementById('pesos-blue-venta').textContent =
+            formatoDolares(pesos / cotizaciones.blueVenta);
+    }
+
+    function generarEscala() {
+
+        const dolares = parseFloat(
+            document.getElementById('dolares-input').value
+        );
+
+        const escala = parseFloat(
+            document.getElementById('escala-input').value
+        );
+
+        const contenedor =
+            document.getElementById('escala-resultados');
+
+
+        if (!dolares || dolares <= 0 || !escala || escala <= 0) {
+
+            contenedor.innerHTML = '';
+            return;
+        }
+
+
+        let html = '';
+
+
+        for (let i = -5; i <= 5; i++) {
+
+            const monto = dolares + (escala * i);
+
+            if (monto <= 0)
+                continue;
+
+
+            const esPrincipal = i === 0;
+
+
+            html += `
+                        <div class="tabla-row ${esPrincipal ? 'tabla-row-principal' : ''}">
+
+                            <div class="tabla-dolares">
+                                ${monto.toLocaleString('es-AR')}
+                            </div>
+
+                            <div>
+                                ${formatoPesos(
+                monto * cotizaciones.oficialCompra
+            )}
+                            </div>
+
+                            <div>
+                                ${formatoPesos(
+                monto * cotizaciones.oficialVenta
+            )}
+                            </div>
+
+                            <div>
+                                ${formatoPesos(
+                monto * cotizaciones.blueCompra
+            )}
+                            </div>
+
+                            <div>
+                                ${formatoPesos(
+                monto * cotizaciones.blueVenta
+            )}
+                            </div>
+
+                        </div>
+                    `;
+        }
+
+
+        contenedor.innerHTML = html;
+    }
+
+    generarEscala();
+
+</script>

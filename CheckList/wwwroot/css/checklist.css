@@ -391,7 +391,6 @@
     overflow: hidden;
 }
 
-/* Cumpleaños - icono especial */
 .birthday-item .event-icon {
     font-size: 18px;
     display: flex;
@@ -401,3 +400,353 @@
     height: 20px;
 }
 
+.cotizaciones-main {
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+    max-width: 900px;
+    margin: 0 auto;
+}
+
+
+.cotizaciones-section {
+    width: 100%;
+}
+
+.cotizaciones-card,
+.conversor-card {
+    min-height: unset;
+}
+
+
+.cotizaciones-card {
+    padding: 0;
+    overflow: hidden;
+}
+
+
+.conversor-card {
+    padding: 1rem;
+}
+
+.cotizacion-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+}
+
+
+.cotizacion-box {
+    padding: 1rem;
+}
+
+
+    .cotizacion-box + .cotizacion-box {
+        border-left: 0.5px solid var(--color-border-tertiary);
+    }
+
+
+.cotizacion-title {
+    display: flex;
+    align-items: center;
+    gap: 7px;
+    font-size: 13px;
+    font-weight: 500;
+    color: var(--color-text-primary);
+    margin-bottom: 12px;
+}
+
+
+.cotizacion-dot {
+    width: 7px;
+    height: 7px;
+    border-radius: 50%;
+    flex-shrink: 0;
+}
+
+
+    .cotizacion-dot.oficial {
+        background: #5b8db8;
+    }
+
+
+    .cotizacion-dot.blue {
+        background: #6c63a8;
+    }
+
+
+.cotizacion-values {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 1rem;
+}
+
+
+.cotizacion-value {
+    display: flex;
+    flex-direction: column;
+    gap: 3px;
+}
+
+
+    .cotizacion-value span {
+        font-size: 10px;
+        color: var(--color-text-tertiary);
+        text-transform: uppercase;
+        letter-spacing: 0.05em;
+    }
+
+
+    .cotizacion-value strong {
+        font-size: 16px;
+        font-weight: 500;
+        color: var(--color-text-primary);
+    }
+
+
+.cotizacion-update {
+    border-top: 0.5px solid var(--color-border-tertiary);
+    padding: 7px 1rem;
+    font-size: 10px;
+    color: var(--color-text-tertiary);
+}
+
+
+    .cotizacion-update span {
+        color: var(--color-text-secondary);
+    }
+
+
+.input-group {
+    flex: 1;
+    min-width: 0;
+}
+
+
+    .input-group label {
+        display: block;
+        font-size: 11px;
+        color: var(--color-text-secondary);
+        margin-bottom: 5px;
+    }
+
+
+.money-input,
+.number-input {
+    display: flex;
+    align-items: center;
+    height: 40px;
+    background: var(--color-background-secondary);
+    border: 0.5px solid var(--color-border-secondary);
+    border-radius: var(--border-radius-md);
+    transition: border-color 0.15s;
+}
+
+
+    .money-input:focus-within,
+    .number-input:focus-within {
+        border-color: #1a3a5c;
+    }
+
+
+    .money-input > span {
+        padding-left: 11px;
+        font-size: 12px;
+        color: var(--color-text-tertiary);
+        flex-shrink: 0;
+    }
+
+
+    .money-input input,
+    .number-input input {
+        width: 100%;
+        border: none;
+        outline: none;
+        background: transparent;
+        padding: 0 11px;
+        font-family: var(--font-sans);
+        font-size: 14px;
+        color: var(--color-text-primary);
+    }
+
+
+    .money-input input {
+        padding-left: 6px;
+    }
+
+
+        .money-input input::-webkit-inner-spin-button,
+        .money-input input::-webkit-outer-spin-button,
+        .number-input input::-webkit-inner-spin-button,
+        .number-input input::-webkit-outer-spin-button {
+            margin: 0;
+        }
+
+.resultado-grid {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 8px;
+    margin-top: 1rem;
+}
+
+
+.resultado-item {
+    padding: 10px;
+    border: 0.5px solid var(--color-border-tertiary);
+    border-radius: var(--border-radius-md);
+    background: var(--color-background-secondary);
+}
+
+
+.resultado-label {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    font-size: 10px;
+    color: var(--color-text-tertiary);
+    margin-bottom: 6px;
+}
+
+
+.resultado-item strong {
+    display: block;
+    font-size: 14px;
+    font-weight: 500;
+    color: var(--color-text-primary);
+}
+
+.conversion-inputs {
+    display: flex;
+    gap: 10px;
+    margin-bottom: 1rem;
+}
+
+.tabla-wrap {
+    border: 0.5px solid var(--color-border-tertiary);
+    border-radius: var(--border-radius-md);
+    overflow: hidden;
+}
+
+
+.tabla-header,
+.tabla-row {
+    display: grid;
+    grid-template-columns: 0.85fr 1.15fr 1.15fr 1.15fr 1.15fr;
+    align-items: center;
+}
+
+
+.tabla-header {
+    min-height: 34px;
+    background: var(--color-background-secondary);
+    border-bottom: 0.5px solid var(--color-border-tertiary);
+    font-size: 9px;
+    font-weight: 500;
+    color: var(--color-text-tertiary);
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+}
+
+
+    .tabla-header > div,
+    .tabla-row > div {
+        padding: 7px 8px;
+    }
+
+
+        .tabla-header > div:not(:first-child),
+        .tabla-row > div:not(:first-child) {
+            text-align: right;
+        }
+
+
+.tabla-row {
+    min-height: 34px;
+    border-bottom: 0.5px solid var(--color-border-tertiary);
+    font-size: 11px;
+    color: var(--color-text-secondary);
+}
+
+
+    .tabla-row:last-child {
+        border-bottom: none;
+    }
+
+
+    .tabla-row:hover {
+        background: rgba(26, 58, 92, 0.025);
+    }
+
+
+.tabla-row-principal {
+    background: rgba(26, 58, 92, 0.07);
+    color: var(--color-text-primary);
+    font-weight: 500;
+}
+
+
+    .tabla-row-principal:hover {
+        background: rgba(26, 58, 92, 0.07);
+    }
+
+
+.tabla-dolares {
+    font-weight: 500;
+    color: var(--color-text-primary);
+}
+
+@media (max-width: 700px) {
+
+    .cotizacion-grid {
+        grid-template-columns: 1fr;
+    }
+
+
+    .cotizacion-box + .cotizacion-box {
+        border-left: none;
+        border-top: 0.5px solid var(--color-border-tertiary);
+    }
+
+
+    .resultado-grid {
+        grid-template-columns: 1fr 1fr;
+    }
+
+
+    .tabla-wrap {
+        overflow-x: auto;
+    }
+
+
+    .tabla-header,
+    .tabla-row {
+        min-width: 620px;
+    }
+}
+
+
+@media (max-width: 500px) {
+
+    .conversor-card {
+        padding: 0.75rem;
+    }
+
+
+    .conversion-inputs {
+        flex-direction: column;
+    }
+
+
+    .resultado-grid {
+        grid-template-columns: 1fr;
+    }
+
+
+    .cotizacion-values {
+        gap: 0.5rem;
+    }
+
+
+    .cotizacion-value strong {
+        font-size: 15px;
+    }
+}
