@@ -1,0 +1,280 @@
+﻿@page
+@model CheckList.Pages.ClimaModel
+@{
+    ViewData["Title"] = "Clima";
+}
+
+<div class="wrapper">
+    <div class="main cotizaciones-main">
+        <div class="cotizaciones-section">
+
+            @if (Model.Clima == null)
+            {
+                <div class="col-header">
+                    <svg width="13" height="13" viewBox="0 0 13 13" fill="none">
+                        <circle cx="6.5" cy="6.5" r="5.5" stroke="currentColor" stroke-width="1.1" />
+                        <path d="M6.5 2.5v4l2 2" stroke="currentColor" stroke-width="1" stroke-linecap="round" />
+                    </svg>
+                    Clima
+                    <span class="col-date">Error</span>
+                </div>
+
+                <div class="card clima-card">
+                    <div class="clima-error">
+                        <strong>No se pudo cargar el clima.</strong>
+                        @if (!string.IsNullOrWhiteSpace(Model.Error))
+                        {
+                            <div>@Model.Error</div>
+                        }
+                    </div>
+                </div>
+            }
+            else
+            {
+                var clima = Model.Clima;
+
+                <div class="col-header">
+                    <svg width="13" height="13" viewBox="0 0 13 13" fill="none">
+                        <circle cx="6.5" cy="6.5" r="5.5" stroke="currentColor" stroke-width="1.1" />
+                        <path d="M6.5 2.5v4l2 2" stroke="currentColor" stroke-width="1" stroke-linecap="round" />
+                    </svg>
+                    Clima · @clima.Ubicacion.Ciudad
+                    <span class="col-date">@clima.Actualizado.ToString("HH:mm")</span>
+                </div>
+
+                <div class="card clima-card">
+
+                    <div class="clima-ubicacion">
+                        @clima.Ubicacion.Ciudad, @clima.Ubicacion.Provincia
+                    </div>
+
+                    @if (clima.Alertas.Any())
+                    {
+                        <div class="clima-alertas">
+                            @foreach (var alerta in clima.Alertas)
+                            {
+                                <div class="clima-alerta @alerta.Nivel.ToLowerInvariant()">
+                                    <div class="clima-alerta-nivel">@alerta.Nivel</div>
+                                    <div class="clima-alerta-fenomeno">@alerta.Fenomeno</div>
+                                    @if (!string.IsNullOrWhiteSpace(alerta.Descripcion))
+                                    {
+                                        <div class="clima-alerta-descripcion">@alerta.Descripcion</div>
+                                    }
+                                </div>
+                            }
+                        </div>
+                    }
+
+                    <div class="clima-actual">
+                        <div class="clima-actual-principal">
+                            <div class="clima-icono-grande">@clima.Actual.Icono</div>
+                            <div>
+                                <div class="clima-temp-principal">@Math.Round(clima.Actual.Temperatura)°</div>
+                                <div class="clima-desc">@clima.Actual.Descripcion</div>
+                                <div class="clima-feels">Sensación @Math.Round(clima.Actual.SensacionTermica)°</div>
+                            </div>
+                        </div>
+
+                        <div class="clima-datos-actuales">
+                            <div>
+                                <span>💧</span>
+                                <strong>@Math.Round(clima.Actual.Humedad)%</strong>
+                                <small>Humedad</small>
+                            </div>
+                            <div>
+                                <span>💨</span>
+                                <strong>@Math.Round(clima.Actual.Viento) km/h</strong>
+                                <small>Viento</small>
+                            </div>
+                            <div>
+                                <span>🌬️</span>
+                                <strong>@Math.Round(clima.Actual.Rafaga) km/h</strong>
+                                <small>Ráfagas</small>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="clima-seccion-titulo">Próximas 24 horas</div>
+
+                    <div class="clima-scroll-wrap">
+                        <div class="clima-scroll">
+                            @foreach (var hora in clima.Horas)
+                            {
+                                var esAhora = hora.Hora == clima.Horas.First().Hora;
+                                <div class="clima-hora @(esAhora ? "ahora" : "")">
+                                    <div class="clima-hora-label">
+                                        @(esAhora ? "Ahora" : hora.Hora.ToString("HH:mm"))
+                                    </div>
+                                    <div class="clima-hora-icono">@hora.Icono</div>
+                                    <div class="clima-hora-temp">@Math.Round(hora.Temperatura)°</div>
+                                    <div class="clima-hora-lluvia @(hora.ProbabilidadLluvia < 20 ? "sin-lluvia" : "")">
+                                        💧 @hora.ProbabilidadLluvia%
+                                    </div>
+                                </div>
+                            }
+                        </div>
+                        <div class="custom-scrollbar">
+                            <div class="custom-scrollbar-thumb" id="thumb-horas"></div>
+                        </div>
+                    </div>
+
+                    @if (clima.Dias.Any())
+                    {
+                        <div class="clima-seccion-titulo">Próximos días</div>
+
+                        <div class="clima-dias-wrap">
+                            <div class="clima-dias">
+                                @foreach (var dia in clima.Dias)
+                                {
+                                    <div class="clima-dia">
+                                        <div class="clima-dia-fecha">
+                                            @dia.Fecha.ToString("ddd dd", new System.Globalization.CultureInfo("es-AR"))
+                                        </div>
+                                        <div class="clima-dia-icono">@dia.Icono</div>
+                                        <div class="clima-dia-desc">@dia.Descripcion</div>
+                                        <div class="clima-dia-temperaturas">
+                                            <strong>@Math.Round(dia.TemperaturaMaxima)°</strong>
+                                            <span>@Math.Round(dia.TemperaturaMinima)°</span>
+                                        </div>
+                                        <div class="clima-dia-lluvia">💧 @Math.Round(dia.ProbabilidadLluvia)%</div>
+                                    </div>
+                                }
+                            </div>
+                            <div class="custom-scrollbar">
+                                <div class="custom-scrollbar-thumb" id="thumb-dias"></div>
+                            </div>
+                        </div>
+                    }
+
+                </div>
+            }
+
+        </div>
+    </div>
+</div>
+
+<style>
+    .clima-scroll,
+    .clima-dias {
+        scrollbar-width: none;
+        -ms-overflow-style: none;
+    }
+
+    .clima-scroll::-webkit-scrollbar,
+    .clima-dias::-webkit-scrollbar {
+        display: none;
+    }
+
+    .clima-scroll-wrap,
+    .clima-dias-wrap {
+        position: relative;
+    }
+
+    .custom-scrollbar {
+        height: 5px;
+        background: var(--color-background-secondary);
+        border-radius: 3px;
+        margin-top: 6px;
+        overflow: hidden;
+    }
+
+    .custom-scrollbar-thumb {
+        height: 100%;
+        background: #1a3a5c66;
+        border-radius: 3px;
+        position: relative;
+        transition: background 0.15s;
+        cursor: pointer;
+        min-width: 24px;
+    }
+
+    .custom-scrollbar-thumb:hover,
+    .custom-scrollbar-thumb.dragging {
+        background: #1a3a5c;
+    }
+</style>
+
+<script>
+    function initScrollbar(scrollEl, barThumb) {
+        function update() {
+            var ratio  = scrollEl.clientWidth / scrollEl.scrollWidth;
+            var thumbW = Math.max(ratio * 100, 8);
+            var thumbL = (scrollEl.scrollLeft / scrollEl.scrollWidth) * 100;
+            barThumb.style.width = thumbW + '%';
+            barThumb.style.left  = thumbL + '%';
+            barThumb.parentElement.style.display = ratio >= 1 ? 'none' : 'block';
+        }
+
+        scrollEl.addEventListener('scroll', update);
+        window.addEventListener('resize', update);
+
+        // Drag en el thumb
+        var isDragging = false;
+        var dragStartX, dragStartScroll;
+
+        barThumb.addEventListener('pointerdown', function (e) {
+            isDragging    = true;
+            dragStartX    = e.clientX;
+            dragStartScroll = scrollEl.scrollLeft;
+            barThumb.classList.add('dragging');
+            e.preventDefault();
+        });
+
+        document.addEventListener('pointermove', function (e) {
+            if (!isDragging) return;
+            var dx    = e.clientX - dragStartX;
+            var ratio = scrollEl.scrollWidth / scrollEl.clientWidth;
+            scrollEl.scrollLeft = dragStartScroll + dx * ratio;
+        });
+
+        document.addEventListener('pointerup', function () {
+            if (!isDragging) return;
+            isDragging = false;
+            barThumb.classList.remove('dragging');
+        });
+
+        // Drag directo en el scroll (mouse)
+        var isScrollDragging = false;
+        var scrollDragStartX, scrollDragStart;
+
+        scrollEl.addEventListener('mousedown', function (e) {
+            isScrollDragging  = true;
+            scrollEl.style.cursor = 'grabbing';
+            scrollDragStartX  = e.pageX - scrollEl.offsetLeft;
+            scrollDragStart   = scrollEl.scrollLeft;
+            e.preventDefault();
+        });
+
+        scrollEl.addEventListener('mouseleave', function () {
+            isScrollDragging = false;
+            scrollEl.style.cursor = 'grab';
+        });
+
+        scrollEl.addEventListener('mouseup', function () {
+            isScrollDragging = false;
+            scrollEl.style.cursor = 'grab';
+        });
+
+        scrollEl.addEventListener('mousemove', function (e) {
+            if (!isScrollDragging) return;
+            var x    = e.pageX - scrollEl.offsetLeft;
+            var walk = (x - scrollDragStartX) * 1.5;
+            scrollEl.scrollLeft = scrollDragStart - walk;
+            update();
+        });
+
+        scrollEl.style.cursor = 'grab';
+        update();
+    }
+
+    document.addEventListener('DOMContentLoaded', function () {
+        [
+            { scroll: '.clima-scroll', thumb: '#thumb-horas' },
+            { scroll: '.clima-dias',   thumb: '#thumb-dias'  }
+        ].forEach(function (cfg) {
+            var scrollEl = document.querySelector(cfg.scroll);
+            var thumb    = document.querySelector(cfg.thumb);
+            if (scrollEl && thumb) initScrollbar(scrollEl, thumb);
+        });
+    });
+</script>

@@ -749,4 +749,438 @@
     .cotizacion-value strong {
         font-size: 15px;
     }
+
+
+}
+
+.clima-card {
+    min-height: unset;
+    padding: 1rem;
+}
+
+.clima-ubicacion {
+    font-size: 11px;
+    color: var(--color-text-tertiary);
+    margin-bottom: 12px;
+}
+
+.clima-actual {
+    margin-bottom: 16px;
+}
+
+.clima-actual-principal {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+}
+
+.clima-icono-grande {
+    font-size: 42px;
+    line-height: 1;
+}
+
+.clima-temp-principal {
+    font-size: 34px;
+    font-weight: 500;
+    color: var(--color-text-primary);
+    line-height: 1;
+}
+
+.clima-desc {
+    font-size: 13px;
+    color: var(--color-text-secondary);
+    margin-top: 4px;
+}
+
+.clima-feels {
+    font-size: 11px;
+    color: var(--color-text-tertiary);
+    margin-top: 3px;
+}
+
+.clima-datos-actuales {
+    display: flex;
+    gap: 8px;
+    margin-top: 14px;
+}
+
+    .clima-datos-actuales > div {
+        flex: 1;
+        display: flex;
+        flex-direction: column;
+        padding: 8px;
+        border: 0.5px solid var(--color-border-tertiary);
+        border-radius: var(--border-radius-md);
+        background: var(--color-background-secondary);
+    }
+
+    .clima-datos-actuales span {
+        font-size: 13px;
+    }
+
+    .clima-datos-actuales strong {
+        font-size: 12px;
+        color: var(--color-text-primary);
+        margin-top: 3px;
+    }
+
+    .clima-datos-actuales small {
+        font-size: 9px;
+        color: var(--color-text-tertiary);
+        margin-top: 2px;
+    }
+
+.clima-seccion-titulo {
+    font-size: 11px;
+    font-weight: 500;
+    color: var(--color-text-secondary);
+    margin: 14px 0 7px;
+}
+
+.clima-scroll {
+    display: flex;
+    gap: 6px;
+    overflow-x: auto;
+    padding-bottom: 4px;
+}
+
+    .clima-scroll::-webkit-scrollbar {
+        height: 3px;
+    }
+
+    .clima-scroll::-webkit-scrollbar-thumb {
+        background: var(--color-border-secondary);
+        border-radius: 2px;
+    }
+
+.clima-hora {
+    flex: 0 0 70px;
+    border: 0.5px solid var(--color-border-tertiary);
+    border-radius: var(--border-radius-md);
+    padding: 8px 6px;
+    text-align: center;
+    background: var(--color-background-secondary);
+}
+
+    .clima-hora.ahora {
+        border-color: #1a3a5c;
+        background: rgba(26, 58, 92, 0.07);
+    }
+
+.clima-hora-label {
+    font-size: 10px;
+    color: var(--color-text-tertiary);
+    margin-bottom: 5px;
+}
+
+.clima-hora.ahora .clima-hora-label {
+    color: #1a3a5c;
+    font-weight: 500;
+}
+
+.clima-hora-icono {
+    font-size: 18px;
+    margin-bottom: 3px;
+}
+
+.clima-hora-temp {
+    font-size: 14px;
+    font-weight: 500;
+    color: var(--color-text-primary);
+}
+
+.clima-hora-lluvia {
+    font-size: 9px;
+    color: #1a3a5c;
+    margin-top: 4px;
+}
+
+    .clima-hora-lluvia.sin-lluvia {
+        color: var(--color-text-tertiary);
+    }
+
+.clima-dias {
+    display: flex;
+    gap: 6px;
+    overflow-x: auto;
+    padding-bottom: 4px;
+}
+
+.clima-dia {
+    flex: 0 0 105px;
+    padding: 9px;
+    border: 0.5px solid var(--color-border-tertiary);
+    border-radius: var(--border-radius-md);
+    background: var(--color-background-secondary);
+}
+
+.clima-dia-fecha {
+    font-size: 10px;
+    color: var(--color-text-tertiary);
+    text-transform: capitalize;
+}
+
+.clima-dia-icono {
+    font-size: 23px;
+    margin: 7px 0 4px;
+}
+
+.clima-dia-desc {
+    font-size: 10px;
+    color: var(--color-text-secondary);
+    min-height: 25px;
+}
+
+.clima-dia-temperaturas {
+    display: flex;
+    gap: 6px;
+    align-items: center;
+    margin-top: 6px;
+}
+
+    .clima-dia-temperaturas strong {
+        font-size: 14px;
+        color: var(--color-text-primary);
+    }
+
+    .clima-dia-temperaturas span {
+        font-size: 12px;
+        color: var(--color-text-tertiary);
+    }
+
+.clima-dia-lluvia {
+    font-size: 9px;
+    color: #1a3a5c;
+    margin-top: 5px;
+}
+
+.clima-alertas {
+    display: flex;
+    flex-direction: column;
+    gap: 7px;
+    margin-bottom: 14px;
+}
+
+.clima-alerta {
+    border-radius: var(--border-radius-md);
+    padding: 10px;
+    border-left: 4px solid;
+}
+
+    .clima-alerta.amarillo {
+        background: rgba(245, 190, 40, 0.12);
+        border-left-color: #e0ad00;
+    }
+
+    .clima-alerta.naranja {
+        background: rgba(240, 125, 30, 0.12);
+        border-left-color: #e87b1c;
+    }
+
+    .clima-alerta.rojo {
+        background: rgba(210, 50, 50, 0.12);
+        border-left-color: #d23232;
+    }
+
+    .clima-alerta.verde {
+        background: rgba(60, 160, 90, 0.10);
+        border-left-color: #3c9c5a;
+    }
+
+.clima-alerta-nivel {
+    font-size: 10px;
+    font-weight: 600;
+    text-transform: uppercase;
+}
+
+.clima-alerta-fenomeno {
+    font-size: 13px;
+    font-weight: 500;
+    margin-top: 2px;
+}
+
+.clima-alerta-descripcion {
+    font-size: 11px;
+    color: var(--color-text-secondary);
+    margin-top: 4px;
+    line-height: 1.35;
+}
+
+.clima-error {
+    font-size: 13px;
+    color: var(--color-text-secondary);
+    padding: 8px 0;
+}
+
+    .clima-error strong {
+        display: block;
+        color: var(--color-text-primary);
+        margin-bottom: 4px;
+    }
+
+@media (min-width: 641px) {
+
+    /* ── Dólares ── */
+    .input-group label {
+        font-size: 13px;
+    }
+
+    .money-input,
+    .number-input {
+        height: 44px;
+    }
+
+        .money-input > span {
+            font-size: 14px;
+        }
+
+        .money-input input,
+        .number-input input {
+            font-size: 15px;
+        }
+
+    .cotizacion-title {
+        font-size: 15px;
+    }
+
+    .cotizacion-value span {
+        font-size: 12px;
+    }
+
+    .cotizacion-value strong {
+        font-size: 22px;
+    }
+
+    .cotizacion-update {
+        font-size: 12px;
+        padding: 9px 1rem;
+    }
+
+    .resultado-label {
+        font-size: 12px;
+    }
+
+    .resultado-item strong {
+        font-size: 17px;
+    }
+
+    .tabla-header {
+        font-size: 11px;
+        min-height: 38px;
+    }
+
+    .tabla-row {
+        font-size: 13px;
+        min-height: 38px;
+    }
+
+        .tabla-header > div,
+        .tabla-row > div {
+            padding: 9px 10px;
+        }
+
+    /* ── Clima ── */
+    .clima-ubicacion {
+        font-size: 13px;
+    }
+
+    .clima-temp-principal {
+        font-size: 42px;
+    }
+
+    .clima-desc {
+        font-size: 15px;
+    }
+
+    .clima-feels {
+        font-size: 13px;
+    }
+
+    .clima-datos-actuales > div {
+        padding: 10px 12px;
+    }
+
+    .clima-datos-actuales span {
+        font-size: 15px;
+    }
+
+    .clima-datos-actuales strong {
+        font-size: 14px;
+    }
+
+    .clima-datos-actuales small {
+        font-size: 11px;
+    }
+
+    .clima-seccion-titulo {
+        font-size: 13px;
+        margin: 16px 0 8px;
+    }
+
+    .clima-hora {
+        flex: 0 0 80px;
+        padding: 10px 8px;
+    }
+
+    .clima-hora-label {
+        font-size: 12px;
+    }
+
+    .clima-hora-icono {
+        font-size: 22px;
+    }
+
+    .clima-hora-temp {
+        font-size: 16px;
+    }
+
+    .clima-hora-lluvia {
+        font-size: 11px;
+    }
+
+    .clima-dia {
+        flex: 0 0 120px;
+        padding: 11px;
+    }
+
+    .clima-dia-fecha {
+        font-size: 12px;
+    }
+
+    .clima-dia-icono {
+        font-size: 26px;
+    }
+
+    .clima-dia-desc {
+        font-size: 12px;
+        min-height: 28px;
+    }
+
+    .clima-dia-temperaturas strong {
+        font-size: 16px;
+    }
+
+    .clima-dia-temperaturas span {
+        font-size: 14px;
+    }
+
+    .clima-dia-lluvia {
+        font-size: 11px;
+    }
+
+    .clima-alerta {
+        padding: 12px 14px;
+    }
+
+    .clima-alerta-nivel {
+        font-size: 11px;
+    }
+
+    .clima-alerta-fenomeno {
+        font-size: 15px;
+    }
+
+    .clima-alerta-descripcion {
+        font-size: 13px;
+    }
 }

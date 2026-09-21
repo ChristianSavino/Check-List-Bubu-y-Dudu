@@ -130,8 +130,8 @@ namespace CheckList.Pages
                     ModelState.Remove("FechaFin"); ModelState.Remove("DiaSemana");
                     break;
                 case TipoTarea.Weekly:
-                    Hora = ""; Fecha = ""; FechaFin = "";
-                    ModelState.Remove("Hora"); ModelState.Remove("Fecha");
+                    Fecha = ""; FechaFin = "";
+                    ModelState.Remove("Fecha");
                     ModelState.Remove("FechaFin");
                     break;
                 case TipoTarea.Specific:

@@ -17,13 +17,14 @@
                 <svg width="13" height="13" viewBox="0 0 13 13" fill="none"><circle cx="6.5" cy="4" r="2.5" stroke="currentColor" stroke-width="1.1"/><path d="M1.5 12c0-2.5 2.2-4.5 5-4.5s5 2 5 4.5" stroke="currentColor" stroke-width="1.1" stroke-linecap="round"/></svg>
                 Personas
             </a>
-            @* Futuras secciones van acá *@
+            <a href="#clima" class="params-nav-item" onclick="mostrarSeccion('clima', this)">
+                <svg width="13" height="13" viewBox="0 0 13 13" fill="none"><circle cx="6.5" cy="6.5" r="2.5"stroke="currentColor" stroke-width="1.1"/><path d="M6.5 1v2M6.5 10v2M1 6.5h2M10 6.5h2" stroke="currentColor" stroke-width="1.1" stroke-linecap="round"/> </svg>
+                Clima
+            </a>
         </nav>
 
         @* CONTENIDO *@
         <div class="params-content">
-
-            @* SECCIÓN: PERSONAS *@
             <div id="seccion-personas" class="params-section">
                 <div class="col-header">
                     <svg width="13" height="13" viewBox="0 0 13 13" fill="none"><circle cx="6.5" cy="4" r="2.5" stroke="currentColor" stroke-width="1.1"/><path d="M1.5 12c0-2.5 2.2-4.5 5-4.5s5 2 5 4.5" stroke="currentColor" stroke-width="1.1" stroke-linecap="round"/></svg>
@@ -39,7 +40,44 @@
                     <div id="personas-list"></div>
                 </div>
             </div>
+            <div id="seccion-clima" class="params-section" style="display: none;">
+                <div class="col-header">
+                    <svg width="13" height="13" viewBox="0 0 13 13" fill="none"><circle cx="6.5" cy="6.5" r="2.5"stroke="currentColor" stroke-width="1.1"/><path d="M6.5 1v2M6.5 10v2M1 6.5h2M10 6.5h2" stroke="currentColor" stroke-width="1.1" stroke-linecap="round"/> </svg>
+                    Clima
+                </div>
+                <p class="params-desc">Configuración de parámetros relacionados con el clima.</p>
+               <div class="card">
+                    <div class="param-row">
+                        <div>
+                            <div class="param-label">Ciudad</div>
+                            <div class="param-description">Ciudad para el pronóstico del clima</div>
+                        </div>
+                        <input type="text"
+                               id="clima-ciudad"
+                               class="param-input"
+                               value="@Model.ClimaCiudad"
+                               placeholder="Villa de Mayo" />
+                    </div>
 
+                    <div class="param-row">
+                        <div>
+                            <div class="param-label">Provincia</div>
+                            <div class="param-description">Provincia de la ciudad configurada</div>
+                        </div>
+                        <input type="text"
+                               id="clima-provincia"
+                               class="param-input"
+                               value="@Model.ClimaProvincia"
+                               placeholder="Buenos Aires" />
+                    </div>
+
+                    <div class="param-actions">
+                        <button class="param-save-btn" onclick="guardarClima()">
+                            Guardar
+                        </button>
+                    </div>
+               </div>
+            </div>
         </div>
     </div>
     </div>
@@ -175,6 +213,42 @@
         });
     });
 
+    function guardarClima() {
+        var ciudad = document.getElementById('clima-ciudad').value.trim();
+        var provincia = document.getElementById('clima-provincia').value.trim();
+
+        if (!ciudad) {
+            alert('La ciudad es obligatoria.');
+            return;
+        }
+
+        fetch('/api/parametros/clima', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({
+                ciudad: ciudad,
+                provincia: provincia
+            })
+        })
+        .then(function(r) {
+            if (!r.ok) {
+                return r.text().then(function(t) {
+                    throw new Error(t);
+                });
+            }
+
+            return r.json();
+        })
+        .then(function() {
+            alert('Configuración del clima guardada.');
+        })
+        .catch(function(err) {
+            alert(err.message || 'Error al guardar la configuración.');
+        });
+    }
+
     connection.start().catch(function(err) { console.error('SignalR error:', err); });
 
     render();
@@ -299,5 +373,61 @@
         .params-layout { grid-template-columns: 1fr; }
         .params-sidebar { flex-direction: row; overflow-x: auto; gap: 4px; padding-bottom: 0.5rem; border-bottom: 0.5px solid var(--color-border-tertiary); }
         .params-sidebar-title { display: none; }
+    }
+
+    .param-row {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 1.5rem;
+        padding: 14px;
+        border-bottom: 0.5px solid var(--color-border-tertiary);
+    }
+
+    .param-row:last-of-type {
+        border-bottom: none;
+    }
+
+    .param-label {
+        font-size: 14px;
+        color: var(--color-text-primary);
+    }
+
+    .param-description {
+        margin-top: 3px;
+        font-size: 12px;
+        color: var(--color-text-tertiary);
+    }
+
+    .param-input {
+        width: 220px;
+        padding: 8px 10px;
+        border: 1px solid var(--color-border-tertiary);
+        border-radius: var(--border-radius-md);
+        background: transparent;
+        color: var(--color-text-primary);
+        font-family: var(--font-sans);
+        font-size: 13px;
+        outline: none;
+    }
+
+    .param-input:focus {
+        border-color: #1a3a5c;
+    }
+
+    .param-actions {
+        display: flex;
+        justify-content: flex-end;
+        padding: 12px 14px;
+    }
+
+    .param-save-btn {
+        padding: 7px 14px;
+        border: 0;
+        border-radius: var(--border-radius-md);
+        background: #1a3a5c;
+        color: white;
+        font-size: 13px;
+        cursor: pointer;
     }
 </style>

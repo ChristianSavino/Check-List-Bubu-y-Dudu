@@ -1,7 +1,9 @@
+using CheckList.Core.Clima.Logic;
 using CheckList.Core.Compra.DataAccess;
 using CheckList.Core.Dolares.Domain;
 using CheckList.Core.Dolares.Logic;
 using CheckList.Core.Infrastructure;
+using CheckList.Core.Parametro.Logic;
 using CheckList.Core.Persona.DataAccess;
 using CheckList.Core.Tarea.DataAccess;
 using CheckList.Core.Tarea.Logic;
@@ -31,6 +33,8 @@ builder.Services.AddScoped<ITareaRepository, TareaRepository>();
 builder.Services.AddScoped<ICompraRepository, CompraRepository>();
 builder.Services.AddScoped<IPersonaRepository, PersonaRepository>();
 builder.Services.AddScoped<IAppSettingRepository, AppSettingRepository>();
+builder.Services.AddScoped<IParametroService, ParametroService>();
+builder.Services.AddScoped<IUserClimaService, UserClimaService>();
 
 // Servicios
 builder.Services.AddScoped<ITareaService, TareaService>();
@@ -43,6 +47,14 @@ builder.Services.AddHttpClient<FeriadoService>();
 builder.Services.AddSingleton<DolaresService>();
 builder.Services.AddSingleton<IDolaresService>(sp => sp.GetRequiredService<DolaresService>());
 builder.Services.AddHttpClient<DolaresService>();
+
+builder.Services.AddSingleton<ClimaService>();
+builder.Services.AddSingleton<IClimaService>(sp => sp.GetRequiredService<ClimaService>());
+builder.Services.AddHttpClient<IClimaService, ClimaService>(client =>
+{
+    client.Timeout = TimeSpan.FromSeconds(15);
+    client.DefaultRequestHeaders.UserAgent.ParseAdd("CheckList/1.0");
+});
 
 builder.Services.AddHostedService<PortForwardingService>();
 
